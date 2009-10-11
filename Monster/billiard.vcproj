@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib clib.lib cpplib.lib zlibd.lib comctl32.lib"
+				AdditionalDependencies="opengl32.lib glu32.lib clib.lib cpplib.lib comctl32.lib zlibd.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\clib\$(ConfigurationName);..\..\cpplib\$(ConfigurationName);..\..\zlib\projects\visualc6\win32_lib_$(ConfigurationName);"
 				GenerateDebugInformation="true"
@@ -95,7 +95,7 @@
 			OutputDirectory="..\$(ConfigurationName)"
 			IntermediateDirectory="..\$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="0"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -136,9 +136,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib clib.lib cpplib.lib"
+				AdditionalDependencies="opengl32.lib glu32.lib clib.lib cpplib.lib comctl32.lib zlib.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\clib\$(ConfigurationName);..\..\cpplib\$(ConfigurationName)"
+				AdditionalLibraryDirectories="..\..\clib\$(ConfigurationName);..\..\cpplib\$(ConfigurationName);..\..\zlib\projects\visualc6\win32_lib_$(ConfigurationName);"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
