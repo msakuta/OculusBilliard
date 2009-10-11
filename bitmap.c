@@ -1,9 +1,9 @@
 #include "bitmap.h"
 #include <stddef.h>
 #include <time.h>
-#include <unzip32.h>
+//#include <unzip32.h>
 typedef __int64 ULHA_INT64;
-#include <7-zip32.h>
+//#include <7-zip32.h>
 #include <stdio.h>
 #include <zlib.h>
 
@@ -231,7 +231,7 @@ BITMAPINFO *ReadBitmap(const char *szFileName)
     BITMAPFILEHEADER bf;
 	BITMAPINFOHEADER bi;
 	char *szBuffer;
-	HARC arc;
+//	HARC arc;
 	static int init = 0;
 
 /*	if(!init){
