@@ -20,8 +20,8 @@ public:
 		std::memset(this, 0, sizeof *this);
 		rot[3] = 1.;
 	}
-	double pos[3];
-	double velo[3];
+	Vec3d pos;
+	Vec3d velo;
 	double accel[3];
 	double pyr[3], avelo[3];
 	Quatd rot;

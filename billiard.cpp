@@ -56,12 +56,16 @@ static bool pause = false, charging = false;
 static double power = 0.;
 static double deviation[2];
 
+enum directionset{LEFT = 1, RIGHT = 2, FORWARD = 4, BACKWARD = 8, DOWNWARD = 16, UPWARD = 32};
+int keystate = 0;
+
 Player pl;
 Graphic gr;
 Board board(-20, -40, 20, 40);
 
 int selected = 0;
 double view_dist = 20;
+static bool freelook = false;
 
 static HDC hcdc;
 static HBITMAP hbm;
@@ -148,7 +152,7 @@ void draw_text(const wchar_t *s){
 			ExtTextOutW(hcdc, 0, 0, ETO_OPAQUE, &r, s, 1, NULL);
 /*			glRecti(rp[0], rp[1], rp[0] + w, rp[1] + 20);
 			rp[0] += w;*/
-			glBitmap(32, 32, 0, 0, w, 0, chbuf);
+			glBitmap(32, 32, 0, 0, (GLfloat)w, 0, chbuf);
 		}
 		s++;
 	}
@@ -156,13 +160,29 @@ void draw_text(const wchar_t *s){
 
 
 void draw_func(Viewer &vw, double dt){
+	static double vdist = 1.;
+	static Vec3d vvv = vec3_000;
+	static Quatd vvr = quat_u;
 	glClearDepth(1.);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glPushMatrix();
-	glTranslated(0, -view_dist * .015, -view_dist);
-	glMultMatrixd(vw.rot);
-	gldTranslaten3dv(board.balls[selected].pos);
+	if(freelook){
+		vw.pos = pl.pos;
+		glMultMatrixd(vw.rot);
+		gldTranslate3dv(vw.pos);
+	}
+	else{
+		avec3_t mov;
+		Vec3d focusvec = Vec3d(0, -view_dist * .035, -view_dist);
+		mat4dvp3(mov, vw.irot, focusvec);
+		pl.pos = (-board.balls[selected].pos + mov);
+		pl.velo = vec3_000;
+		vvv += -pl.rot.itrans(focusvec) - -vvr.itrans(focusvec) + (pl.pos - vvv) * (1. - exp(-dt * 10.));
+		glMultMatrixd(vw.rot);
+		gldTranslate3dv(vvv);
+	}
+	vvr = pl.rot;
 	board.draw();
 	gldTranslate3dv(board.balls[selected].pos);
 	if(0){
@@ -255,7 +275,6 @@ void display_func(void){
 	else{
 		int trainride = 0;
 		double t1, rdt;
-		avec3_t plpos;
 
 		t1 = TimeMeasLap(&tm);
 		if(g_fix_dt)
@@ -278,15 +297,16 @@ void display_func(void){
 					}
 				}
 				else{
+					int sign = freelook * 2 - 1;
 					aquat_t q;
 	//				quatirot(q, pl.rot, vec3_010);
 					VECCPY(q, vec3_010);
-					VECSCALEIN(q, -(p.x - mouse_pos.x) * .001 / 2.);
+					VECSCALEIN(q, sign * (p.x - mouse_pos.x) * .001 / 2.);
 					q[3] = 0.;
 					quatrotquat(pl.rot, q, pl.rot);
 	//				quatirot(q, pl.rot, vec3_100);
 					VECCPY(q, vec3_100);
-					VECSCALEIN(q, -(p.y - mouse_pos.y) * .001 / 2.);
+					VECSCALEIN(q, sign * (p.y - mouse_pos.y) * .001 / 2.);
 					q[3] = 0.;
 					quatrotquat(pl.rot, q, pl.rot);
 				}
@@ -296,11 +316,24 @@ void display_func(void){
 		}
 
 		if(!pause){
+			if(keystate & LEFT)
+				pl.velo -= pl.rot.itrans(vec3_100) * dt * 1;
+			if(keystate & RIGHT)
+				pl.velo += pl.rot.itrans(vec3_100) * dt * 1;
+			if(keystate & FORWARD)
+				pl.velo -= pl.rot.itrans(vec3_001) * dt * 1;
+			if(keystate & BACKWARD)
+				pl.velo += pl.rot.itrans(vec3_001) * dt * 1;
+			if(keystate & DOWNWARD)
+				pl.velo -= pl.rot.itrans(vec3_010) * dt * 1;
+			if(keystate & UPWARD)
+				pl.velo += pl.rot.itrans(vec3_010) * dt * 1;
+			pl.pos += pl.velo * dt;
 			board.anim(dt);
 			if(charging){
 				power += dt;
 				char buf[256];
-				sprintf(buf, "%d", int(power * 100));
+				sprintf_s(buf, "%d", int(power * 100));
 				SendMessage(hPowerUpDown, UDM_SETPOS32, 0, int(power * 100));
 //				SetWindowText(hPower, buf);
 			}
@@ -591,7 +624,7 @@ static LRESULT WINAPI CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 				LPNMUPDOWN ud;
 				char buf[256];
 				ud = (LPNMUPDOWN)lParam;
-				sprintf(buf, "%d", ud->iPos);
+				sprintf_s(buf, "%d", ud->iPos);
 				SetWindowText(hPower, buf);
 			}
 			break;
@@ -655,6 +688,10 @@ static LRESULT WINAPI CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 					pause = !pause; break;
 				case 'b':
 					board.init(); break;
+				case 'u':
+					freelook = !freelook; break;
+				case 'e':
+					pl.velo = vec3_000;
 			}
 			return 0;
 
@@ -670,6 +707,23 @@ static LRESULT WINAPI CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 			}
 //			case VK_SHIFT: BindKeyUp(1); break;
 //			case VK_CONTROL: BindKeyUp(2); break;
+				case 'W': keystate &= ~FORWARD; break;
+				case 'S': keystate &= ~BACKWARD; break;
+				case 'A': keystate &= ~LEFT; break;
+				case 'D': keystate &= ~RIGHT; break;
+				case 'Q': keystate &= ~UPWARD; break;
+				case 'Z': keystate &= ~DOWNWARD; break;
+			}
+			break;
+
+		case WM_KEYDOWN:
+			switch(wParam){
+				case 'W': keystate |= FORWARD; break;
+				case 'S': keystate |= BACKWARD; break;
+				case 'A': keystate |= LEFT; break;
+				case 'D': keystate |= RIGHT; break;
+				case 'Q': keystate |= UPWARD; break;
+				case 'Z': keystate |= DOWNWARD; break;
 			}
 			break;
 
@@ -705,14 +759,7 @@ HWND hWndApp;
  */
 int main(int argc, char *argv[])
 {
-	int i;
-
-//	printf("%d\n", _WIN32_WINNT);
-
-//	ReadBitmap("ball1.bmp");
-
 	board.init();
-
 
 #if USEWIN
 	{

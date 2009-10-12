@@ -6,6 +6,7 @@ extern "C"{
 #include <clib/avec3.h>
 #include <clib/gl/cull.h>
 }
+#include <cpplib/vec3.h>
 #include <cstring>
 #ifdef _WIN32
 #include <windows.h>
@@ -31,7 +32,8 @@ public:
 		fov = 1.; // Field of View
 	}
 	amat4_t rot, irot, relrot, relirot;
-	avec3_t pos, pyr, velo;
+	Vec3d pos;
+	avec3_t pyr, velo;
 	double velolen;
 	double fov, ar;
 	double dynamic_range; /* experimental; to simulate high dynamic range */
