@@ -66,6 +66,7 @@ Board board(-20, -40, 20, 40);
 int selected = 0;
 double view_dist = 20;
 static bool freelook = false;
+static bool g_wireframe = false;
 
 static HDC hcdc;
 static HBITMAP hbm;
@@ -183,7 +184,10 @@ void draw_func(Viewer &vw, double dt){
 		gldTranslate3dv(vvv);
 	}
 	vvr = pl.rot;
+	glPushAttrib(GL_POLYGON_BIT);
+	glPolygonMode(GL_FRONT_AND_BACK, g_wireframe ? GL_LINE : GL_FLAT);
 	board.draw();
+	glPopAttrib();
 	gldTranslate3dv(board.balls[selected].pos);
 	if(0){
 		Vec3d lookdir = pl.rot.itrans(vec3_001);
@@ -379,7 +383,7 @@ void mouse_func(int button, int state, int x, int y){
 		i = selected;
 		Vec3d lookdir = pl.rot.itrans(vec3_001);
 		power = SendMessage(hPowerUpDown, UDM_GETPOS32, 0, 0) / 100.;
-		board.balls[i].receiveImpulse(10 * power * Vec3d(lookdir[0], false && board.balls[i].pos[1] <= 0. && lookdir[1] < 0. ? 0 : lookdir[1], lookdir[2]),
+		board.balls[i].receiveImpulse(-10 * power * Vec3d(lookdir[0], false && board.balls[i].pos[1] <= 0. && lookdir[1] < 0. ? 0 : lookdir[1], lookdir[2]),
 			pl.rot.itrans(Vec3d(-deviation[0], -deviation[1], 0)));
 		board.cue.pos = board.balls[i].pos + pl.rot.itrans(Vec3d(-deviation[0], -deviation[1], -1)).norm().scale(1.1);
 		/*for(i = 0; i < numof(board.balls); i++)*/
@@ -682,7 +686,7 @@ static LRESULT WINAPI CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 					gametimescale /= 2.; break;
 				case 't':
 					gr.show_trail = !gr.show_trail; break;
-				case 'v':
+				case 'y':
 					gr.show_velo = !gr.show_velo; break;
 				case 'p':
 					pause = !pause; break;
@@ -691,7 +695,9 @@ static LRESULT WINAPI CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 				case 'u':
 					freelook = !freelook; break;
 				case 'e':
-					pl.velo = vec3_000;
+					pl.velo = vec3_000; break;
+				case 'v':
+					g_wireframe = !g_wireframe; break;
 			}
 			return 0;
 

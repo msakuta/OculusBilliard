@@ -16,7 +16,7 @@ extern "C"{
 #include <GL/glext.h>
 #include <GL/glu.h>
 
-void drawShadeSphere(){
+static void drawShadeSphere(){
 	int n = 32, slices, stacks;
 	double (*cuts)[2];
 	cuts = CircleCuts(n);
@@ -29,6 +29,51 @@ void drawShadeSphere(){
 		for(m = 0; m < 3; m++) glproc[m](cuts[stacks1][0] * cuts[slices][0], cuts[stacks1][1], cuts[stacks1][0] * cuts[slices][1]);
 		for(m = 0; m < 3; m++) glproc[m](cuts[stacks1][0] * cuts[slices1][0], cuts[stacks1][1], cuts[stacks1][0] * cuts[slices1][1]);
 		for(m = 0; m < 3; m++) glproc[m](cuts[stacks][0] * cuts[slices1][0], cuts[stacks][1], cuts[stacks][0] * cuts[slices1][1]);
+	}
+	glEnd();
+}
+
+static void (WINAPI *const glproc[3])(const GLdouble *) = {glNormal3dv, glTexCoord3dv, glVertex3dv};
+
+static void drawOctSphereInt(int level, const Vec3d &p0, const Vec3d &p1, const Vec3d &p2){
+	Vec3d p01 = (p0 + p1).norm(), p12 = (p1 + p2).norm(), p20 = (p2 + p0).norm();
+	const Vec3d *faces[][3] = {
+		{&p0, &p01, &p20},
+		{&p01, &p1, &p12},
+		{&p12, &p2, &p20},
+		{&p01, &p12, &p20},
+	};
+	int i;
+	for(i = 0; i < numof(faces); i++) if(level){
+		drawOctSphereInt(level - 1, *faces[i][0], *faces[i][1], *faces[i][2]);
+	}
+	else{
+		int m;
+		for(m = 0; m < 3; m++) glproc[m](*faces[i][0]);
+		for(m = 0; m < 3; m++) glproc[m](*faces[i][1]);
+		for(m = 0; m < 3; m++) glproc[m](*faces[i][2]);
+	}
+}
+
+static void drawOctSphere(){
+	static const Vec3d verts[] = {
+		Vec3d(-1,0,0), Vec3d(0,0,-1), Vec3d(0,-1,0),
+		Vec3d(1,0,0), Vec3d(0,0,1), Vec3d(0,1,0),
+	};
+	static const Vec3d *const faces[][3] = {
+		{&verts[0], &verts[1], &verts[2]},
+		{&verts[1], &verts[0], &verts[5]},
+		{&verts[1], &verts[3], &verts[2]},
+		{&verts[3], &verts[1], &verts[5]},
+		{&verts[3], &verts[4], &verts[2]},
+		{&verts[4], &verts[3], &verts[5]},
+		{&verts[4], &verts[0], &verts[2]},
+		{&verts[0], &verts[4], &verts[5]},
+	};
+	glBegin(GL_TRIANGLES);
+	int i;
+	for(i = 0; i < numof(faces); i++){
+		drawOctSphereInt(2, *faces[i][0], *faces[i][1], *faces[i][2]);
 	}
 	glEnd();
 }
@@ -74,7 +119,8 @@ void Ball::draw(const Board &b)const{
 	glPushMatrix();
 	glTranslated(.5, .5, 0);
 	glScaled(.5, .5, 1);
-	drawShadeSphere();
+//	drawShadeSphere();
+	drawOctSphere();
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
@@ -127,8 +173,8 @@ void Ball::drawShadow(const Board &b)const{
 }
 
 void lightOn(){
-	GLfloat light_pos[2][4] = {{1, 2, 1, 0}, {-2.1, 2, -1.3, 0}, };
-	GLfloat color[] = {.5, .5, .5, 1.}, amb[] = {.2, .2, .2, 1.};
+	GLfloat light_pos[2][4] = {{1, 2, 1, 0}, {-2.1f, 2, -1.3f, 0}, };
+	GLfloat color[] = {.5f, .5f, .5f, 1.f}, amb[] = {.2f, .2f, .2f, 1.f};
 	GLfloat spec[] = {1,1,1,1};
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -145,10 +191,9 @@ void lightOn(){
 
 	// Material Settings
 	GLfloat mat_specular[] = {0.5, 0.5, 0.5, 1.}/*{ 1., 1., .1, 1.0 }*/;
-	GLfloat mat_diffuse[] = { .8, .8, .8, 1.0 };
+	GLfloat mat_diffuse[] = { .8f, .8f, .8f, 1.0 };
 	GLfloat mat_ambient_color[] = { 0.5, 0.5, 0.5, 1.0 };
 	GLfloat mat_shininess[] = { 50.0 };
-	GLfloat light_position[4] /*= { sunpos[0], sunpos[1], sunpos[2], 0.0 }*/;
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
@@ -358,7 +403,7 @@ void Board::draw(){
 	glPushAttrib(GL_TEXTURE_BIT | GL_LIGHTING_BIT);
 
 	glCallList(texfield);
-	const GLfloat field_aad[4] = {.2, .5, .5, 1};
+	const GLfloat field_aad[4] = {.2f, .5f, .5f, 1.f};
 	const GLfloat spec[] = {0,0,0,1};
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, field_aad);
