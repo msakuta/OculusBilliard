@@ -120,7 +120,8 @@ void Ball::draw(const Board &b)const{
 	glTranslated(.5, .5, 0);
 	glScaled(.5, .5, 1);
 //	drawShadeSphere();
-	drawOctSphere();
+//	drawOctSphere();
+	gldOctSphere(3);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
