@@ -1,0 +1,10 @@
+Obj
+Bin
+Backup/
+Debug/
+Release/
+*.opensdf
+*.sdf
+*.suo
+*.obj
+*.user
