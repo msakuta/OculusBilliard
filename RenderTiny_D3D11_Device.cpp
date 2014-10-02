@@ -579,7 +579,7 @@ void Model::AddSolidColorBox(float x1, float y1, float z1,
     }
 }
 
-void Model::AddSphere(float scale)
+void Model::AddSphere(float scale, float texScaleS, float texScaleT)
 {
 	const double M_PI = 3.14159265358979;
 	int slices = 16, stacks = 8;
@@ -599,7 +599,7 @@ void Model::AddSphere(float scale)
 		{
 			double tangle = t * M_PI / stacks - M_PI;
 			Vector3f v = Vector3f(cos(sangle) * sin(tangle), cos(tangle), sin(sangle) * sin(tangle));
-			AddVertex(Vertex(v * scale, Color(127,127,127,255), float(s), float(t), v));
+			AddVertex(Vertex(v * scale, Color(127,127,127,255), texScaleS * float(s) / slices, texScaleT * float(t) / stacks, v));
 		}
 	}
 

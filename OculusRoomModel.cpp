@@ -40,6 +40,7 @@ enum BuiltinTexture
     Tex_Block,
     Tex_Panel,
 	Tex_Table,
+	Tex_Ball,
     Tex_Count
 };
 
@@ -168,8 +169,9 @@ public:
     Ptr<ShaderFill> LitSolid;
     Ptr<ShaderFill> LitTextures[Tex_Count];
 
-    FillCollection(RenderDevice* render);
-  
+	FillCollection(RenderDevice* render);
+protected:
+	void LoadTexture(const char* fname, Ptr<Texture> &builtinTexture, RenderDevice* render);
 };
 
 FillCollection::FillCollection(RenderDevice* render)
@@ -209,7 +211,25 @@ FillCollection::FillCollection(RenderDevice* render)
         builtinTextures[Tex_Block]->SetSampleMode(Sample_Anisotropic|Sample_Repeat);
     }
 
-	FILE *fp = fopen("images/field.png", "rb");
+	LoadTexture("images/field.png", builtinTextures[Tex_Table], render);
+	LoadTexture("images/ball1.png", builtinTextures[Tex_Ball], render);
+
+	LitSolid = *new ShaderFill(*render->CreateShaderSet());
+	LitSolid->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Vertex, VShader_MVP));
+	LitSolid->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Fragment, FShader_LitGouraud));
+
+	for (int i = 1; i < Tex_Count; i++)
+	{
+		LitTextures[i] = *new ShaderFill(*render->CreateShaderSet());
+		LitTextures[i]->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Vertex, VShader_MVP));
+		LitTextures[i]->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Fragment, FShader_LitTexture));
+		LitTextures[i]->SetTexture(0, builtinTextures[i]);
+	}
+
+}
+
+void FillCollection::LoadTexture(const char* fname, Ptr<Texture> &builtinTexture, RenderDevice* render){
+	FILE *fp = fopen(fname, "rb");
 	if(fp) try{
 		unsigned char header[8];
 		fread(header, 1, sizeof header, fp);
@@ -282,8 +302,8 @@ FillCollection::FillCollection(RenderDevice* render)
 						panel[j * width + i] = Color(pal[idx].red,pal[idx].green,pal[idx].blue,255);
 					}
 				}
-				builtinTextures[Tex_Table] = *render->CreateTexture(Texture_RGBA|Texture_GenMipmaps, width, height, &panel.front());
-				builtinTextures[Tex_Table]->SetSampleMode(Sample_Anisotropic|Sample_Repeat);
+				builtinTexture = *render->CreateTexture(Texture_RGBA|Texture_GenMipmaps, width, height, &panel.front());
+				builtinTexture->SetSampleMode(Sample_Anisotropic|Sample_Repeat);
 				
 			}
 		}
@@ -292,22 +312,7 @@ FillCollection::FillCollection(RenderDevice* render)
 	catch(int e){
 		fclose(fp);
 	}
-
-    LitSolid = *new ShaderFill(*render->CreateShaderSet());
-    LitSolid->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Vertex, VShader_MVP)); 
-    LitSolid->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Fragment, FShader_LitGouraud)); 
-
-    for (int i = 1; i < Tex_Count; i++)
-    {
-        LitTextures[i] = *new ShaderFill(*render->CreateShaderSet());
-        LitTextures[i]->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Vertex, VShader_MVP)); 
-        LitTextures[i]->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Fragment, FShader_LitTexture)); 
-        LitTextures[i]->SetTexture(0, builtinTextures[i]);
-    }
-
 }
-
-
 
 // Helper function to create a model out of Slab arrays.
 Model* CreateModel(Vector3f pos, const SlabModel* sm, const FillCollection& fills)
@@ -347,8 +352,8 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
 		for(int ix = 0; ix <= iz; ix++){
 			Model *ball = new Model(Prim_Triangles);
 			ball->SetPosition(Vector3f(-ix * ballRadius * sqrt(3.f), height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius));
-			ball->AddSphere(ballRadius);
-			ball->Fill = fills.LitTextures[Tex_Checker];
+			ball->AddSphere(ballRadius, 2., 1.);
+			ball->Fill = fills.LitTextures[Tex_Ball];
 			scene->World.Add(Ptr<Model>(*ball));
 		}
 	}

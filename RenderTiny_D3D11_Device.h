@@ -553,7 +553,7 @@ public:
                            float x2, float y2, float z2,
                            Color c);
 
-	void AddSphere(float scale = 1.0f);
+	void AddSphere(float scale = 1.0f, float texScaleS = 1.0f, float texScaleT = 1.0f);
 
 	void AddCylinder(float radius = 1.0f, float length = 1.0f);
 };
