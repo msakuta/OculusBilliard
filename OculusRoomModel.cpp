@@ -48,7 +48,7 @@ struct Slab
 struct SlabModel
 {
     int   Count;
-    Slab* pSlabs;
+    const Slab* pSlabs;
     BuiltinTexture tex;
 };
 
@@ -113,25 +113,24 @@ Slab FixtureSlabs[] =
 
 SlabModel Fixtures = {sizeof(FixtureSlabs)/sizeof(Slab), FixtureSlabs};
 
-Slab FurnitureSlabs[] =
+static const float longEnd = 2.0f;
+static const float shortEnd = 1.0f;
+static const float inset = 0.1f;
+static const float outset = 0.1f;
+static const float height = 0.9f;
+static const float rim = 0.1f;
+
+static const Slab TableSlabs[] =
 {
     // Table
-    {  -1.8f, 0.7f, 1.0f,  0.0f,      0.8f, 0.0f,      Color(128,128,88) },
-    {  -1.8f, 0.7f, 0.0f, -1.8f+0.1f, 0.0f, 0.0f+0.1f, Color(128,128,88) }, // Leg 1
-    {  -1.8f, 0.7f, 1.0f, -1.8f+0.1f, 0.0f, 1.0f-0.1f, Color(128,128,88) }, // Leg 2
-    {   0.0f, 0.7f, 1.0f,  0.0f-0.1f, 0.0f, 1.0f-0.1f, Color(128,128,88) }, // Leg 2
-    {   0.0f, 0.7f, 0.0f,  0.0f-0.1f, 0.0f, 0.0f+0.1f, Color(128,128,88) }, // Leg 2
-
-    // Chair
-    {  -1.4f, 0.5f, -1.1f, -0.8f,       0.55f, -0.5f,       Color(88,88,128) }, // Set
-    {  -1.4f, 1.0f, -1.1f, -1.4f+0.06f, 0.0f,  -1.1f+0.06f, Color(88,88,128) }, // Leg 1
-    {  -1.4f, 0.5f, -0.5f, -1.4f+0.06f, 0.0f,  -0.5f-0.06f, Color(88,88,128) }, // Leg 2
-    {  -0.8f, 0.5f, -0.5f, -0.8f-0.06f, 0.0f,  -0.5f-0.06f, Color(88,88,128) }, // Leg 2
-    {  -0.8f, 1.0f, -1.1f, -0.8f-0.06f, 0.0f,  -1.1f+0.06f, Color(88,88,128) }, // Leg 2
-    {  -1.4f, 0.97f,-1.05f,-0.8f,       0.92f, -1.10f,      Color(88,88,128) }, // Back high bar
+    {  -longEnd,          0.0f,    shortEnd,   longEnd,          height,       -shortEnd,      Color(75,128,128) }, // Table face
+    {  -longEnd - outset, height,  shortEnd,  -longEnd + inset,  height + rim, -shortEnd,      Color(128,128,88) }, // Left edge
+    {   longEnd - inset,  height,  shortEnd,   longEnd + outset, height + rim, -shortEnd, Color(128,128,88) }, // Right edge
+    {  -longEnd, height,  shortEnd - inset,   longEnd,         height + rim,  shortEnd + outset, Color(128,128,88) }, // Front edge
+    {  -longEnd, height, -shortEnd - outset,  longEnd,         height + rim, -shortEnd + inset, Color(128,128,88) }, // Back edge
 };
 
-SlabModel Furniture = {sizeof(FurnitureSlabs)/sizeof(Slab), FurnitureSlabs};
+static const SlabModel Table = {sizeof(TableSlabs)/sizeof(Slab), TableSlabs};
 
 Slab PostsSlabs[] = 
 {
@@ -216,14 +215,14 @@ FillCollection::FillCollection(RenderDevice* render)
 
 
 // Helper function to create a model out of Slab arrays.
-Model* CreateModel(Vector3f pos, SlabModel* sm, const FillCollection& fills)
+Model* CreateModel(Vector3f pos, const SlabModel* sm, const FillCollection& fills)
 {
     Model* m = new Model(Prim_Triangles);
     m->SetPosition(pos);
 
     for(int i=0; i< sm->Count; i++)
     {
-        Slab &s = sm->pSlabs[i];
+        const Slab &s = sm->pSlabs[i];
         m->AddSolidColorBox(s.x1, s.y1, s.z1, s.x2, s.y2, s.z2, s.c);
     }
 
@@ -243,10 +242,7 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Room,       fills)));
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Floor,      fills)));
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Ceiling,    fills)));
-    scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Fixtures,   fills)));
-    scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Furniture,  fills)));
-    scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,4),  &Furniture,  fills)));
-    scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(-3,0,3), &Posts,      fills)));
+    scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Table,  fills)));
   
 
     scene->SetAmbient(Vector4f(0.65f,0.65f,0.65f,1));
