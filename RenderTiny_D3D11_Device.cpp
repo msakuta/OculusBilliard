@@ -579,6 +579,85 @@ void Model::AddSolidColorBox(float x1, float y1, float z1,
     }
 }
 
+void Model::AddSphere(float scale)
+{
+	const double M_PI = 3.14159265358979;
+	int slices = 16, stacks = 8;
+
+	uint16_t startIndex = GetNextVertexIndex();
+
+	Vector3f northPos(0, scale, 0);
+	AddVertex(Vertex(northPos, Color(127, 127, 127, 255), 0, 1, northPos));
+
+	Vector3f southPos(0, -scale, 0);
+	AddVertex(Vertex(southPos, Color(127, 127, 127, 255), 0, 0, southPos));
+
+	for (int s = 0; s <= slices; s++)
+	{
+		double sangle = s * M_PI * 2. / slices;
+		for (int t = 0; t <= stacks; t++)
+		{
+			double tangle = t * M_PI / stacks - M_PI;
+			Vector3f v = Vector3f(cos(sangle) * sin(tangle), cos(tangle), sin(sangle) * sin(tangle));
+			AddVertex(Vertex(v * scale, Color(127,127,127,255), float(s), float(t), v));
+		}
+	}
+
+	startIndex += 2;
+
+	// Renumber indices
+	for (uint16_t s = 0; s < slices; s++)
+	{
+		for (uint16_t t = 0; t < stacks; t++)
+		{
+			uint16_t s1 = s + 1;
+			uint16_t t1 = t + 1;
+			auto get = [&](uint16_t s, uint16_t t){
+				return s * (stacks + 1) + t + startIndex;
+			};
+			AddTriangle(get(s, t),
+				get(s1, t),
+				get(s, t1));
+			AddTriangle(get(s1, t),
+				get(s1, t1),
+				get(s, t1));
+		}
+	}
+}
+
+void Model::AddCylinder(float radius, float height)
+{
+	const double M_PI = 3.14159265358979;
+	int round = 6;
+
+	uint16_t startIndex = GetNextVertexIndex();
+
+	for(int i = 0; i <= round; i++)
+	{
+		double sangle = i * M_PI * 2. / round;
+		for (int t = -1; t <= 1; t += 2)
+		{
+			Vector3f v = Vector3f(cos(sangle) * radius, sin(sangle) * radius, t * height);
+			AddVertex(Vertex(v, Color(127, 0, 127, 255), float(i), float(t), Vector3f(cos(sangle), sin(sangle), 0)));
+		}
+	}
+
+	// Renumber indices
+	for (uint16_t s = 0; s < round; s++)
+	{
+		uint16_t s1 = s + 1;
+		auto get = [&](uint16_t s, uint16_t t){
+			return s * 2 + t + startIndex;
+		};
+		AddTriangle(get(s, 0),
+			get(s, 1),
+			get(s1, 0));
+		AddTriangle(get(s1, 0),
+			get(s, 1),
+			get(s1, 1));
+	}
+}
+
 
 //-------------------------------------------------------------------------------------
 

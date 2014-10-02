@@ -243,7 +243,20 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Floor,      fills)));
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Ceiling,    fills)));
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Table,  fills)));
-  
+
+	static const float ballRadius = 0.060f;
+	static const float ballDiameter = ballRadius * 2.f;
+
+	for(int iz = 0; iz < 5; iz++){
+		for(int ix = 0; ix <= iz; ix++){
+			Model *ball = new Model(Prim_Triangles);
+			ball->SetPosition(Vector3f(-ix * ballRadius * sqrt(3.f), height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius));
+			ball->AddSphere(ballRadius);
+			ball->Fill = fills.LitTextures[Tex_Checker];
+			scene->World.Add(Ptr<Model>(*ball));
+		}
+	}
+
 
     scene->SetAmbient(Vector4f(0.65f,0.65f,0.65f,1));
     scene->AddLight(Vector3f(-2,4,-2), Vector4f(8,8,8,1));
