@@ -22,6 +22,10 @@ limitations under the License.
 
 #include "RenderTiny_D3D11_Device.h"
 
+#include "libpng/png.h"
+
+#include <vector>
+
 //-------------------------------------------------------------------------------------
 // ***** Room Model
 
@@ -35,6 +39,7 @@ enum BuiltinTexture
     Tex_Checker,
     Tex_Block,
     Tex_Panel,
+	Tex_Table,
     Tex_Count
 };
 
@@ -124,13 +129,19 @@ static const Slab TableSlabs[] =
 {
     // Table
     {  -longEnd,          0.0f,    shortEnd,   longEnd,          height,       -shortEnd,      Color(75,128,128) }, // Table face
+};
+
+static const SlabModel Table = {sizeof(TableSlabs)/sizeof(Slab), TableSlabs, Tex_Table};
+
+static const Slab CushionSlabs[] =
+{
     {  -longEnd - outset, height,  shortEnd,  -longEnd + inset,  height + rim, -shortEnd,      Color(128,128,88) }, // Left edge
     {   longEnd - inset,  height,  shortEnd,   longEnd + outset, height + rim, -shortEnd, Color(128,128,88) }, // Right edge
     {  -longEnd, height,  shortEnd - inset,   longEnd,         height + rim,  shortEnd + outset, Color(128,128,88) }, // Front edge
     {  -longEnd, height, -shortEnd - outset,  longEnd,         height + rim, -shortEnd + inset, Color(128,128,88) }, // Back edge
 };
 
-static const SlabModel Table = {sizeof(TableSlabs)/sizeof(Slab), TableSlabs};
+static const SlabModel Cushions = {sizeof(CushionSlabs)/sizeof(Slab), CushionSlabs};
 
 Slab PostsSlabs[] = 
 {
@@ -155,7 +166,7 @@ class FillCollection
 {
 public:
     Ptr<ShaderFill> LitSolid;
-    Ptr<ShaderFill> LitTextures[4];
+    Ptr<ShaderFill> LitTextures[Tex_Count];
 
     FillCollection(RenderDevice* render);
   
@@ -197,6 +208,90 @@ FillCollection::FillCollection(RenderDevice* render)
         builtinTextures[Tex_Block] = *render->CreateTexture(Texture_RGBA|Texture_GenMipmaps, 256, 256, block);
         builtinTextures[Tex_Block]->SetSampleMode(Sample_Anisotropic|Sample_Repeat);
     }
+
+	FILE *fp = fopen("images/field.png", "rb");
+	if(fp) try{
+		unsigned char header[8];
+		fread(header, 1, sizeof header, fp);
+		bool is_png = !png_sig_cmp(header, 0, sizeof header);
+		if(is_png){
+			png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, 
+				[](png_structp, png_const_charp){}, [](png_structp, png_const_charp){});
+			png_infop info_ptr = png_create_info_struct(png_ptr);
+			if (!info_ptr)
+			{
+				png_destroy_read_struct(&png_ptr,
+				(png_infopp)NULL, (png_infopp)NULL);
+				throw 1;
+			}
+			png_infop end_info = png_create_info_struct(png_ptr);
+			if (!end_info)
+			{
+				png_destroy_read_struct(&png_ptr, &info_ptr,
+				(png_infopp)NULL);
+				throw 2;
+			}
+			if (setjmp(png_jmpbuf(png_ptr))){
+				png_destroy_read_struct(&png_ptr, &info_ptr,
+				&end_info);
+				fclose(fp);
+				throw 3;
+			}
+			png_init_io(png_ptr, fp);
+			png_set_sig_bytes(png_ptr, sizeof header);
+
+			png_bytepp ret;
+
+			{
+				BITMAPINFO *bmi;
+				png_uint_32 width, height;
+				int bit_depth, color_type, interlace_type;
+				int i;
+				/* The native order of RGB components differs in order against Windows bitmaps,
+				 * so we must instruct libpng to convert it. */
+				png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_BGR, NULL);
+
+				png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
+					&interlace_type, NULL, NULL);
+
+				/* Grayscale images are not supported.
+				 * TODO: alpha channel? */
+				if(bit_depth != 8 || color_type != PNG_COLOR_TYPE_RGB && color_type != PNG_COLOR_TYPE_RGBA && color_type != PNG_COLOR_TYPE_PALETTE)
+					throw 12;
+
+				/* Calculate number of components. */
+				int comps = (color_type == PNG_COLOR_TYPE_PALETTE ? 1 : color_type == PNG_COLOR_TYPE_RGB ? 3 : 4);
+
+				// Supports paletted images
+				png_colorp pal;
+				int npal = 0;
+				if(color_type == PNG_COLOR_TYPE_PALETTE){
+					png_get_PLTE(png_ptr, info_ptr, &pal, &npal);
+				}
+
+				/* png_get_rows returns array of pointers to rows allocated by the library,
+				 * which must be copied to single bitmap buffer. */
+				ret = png_get_rows(png_ptr, info_ptr);
+
+
+				std::vector<Color> panel;
+				panel.resize(width * height);
+				for (int j = 0; j < height; j++){
+					for (int i = 0; i < width; i++){
+						int idx = ret[j][i * comps];
+						panel[j * width + i] = Color(pal[idx].red,pal[idx].green,pal[idx].blue,255);
+					}
+				}
+				builtinTextures[Tex_Table] = *render->CreateTexture(Texture_RGBA|Texture_GenMipmaps, width, height, &panel.front());
+				builtinTextures[Tex_Table]->SetSampleMode(Sample_Anisotropic|Sample_Repeat);
+				
+			}
+		}
+		fclose(fp);
+	}
+	catch(int e){
+		fclose(fp);
+	}
 
     LitSolid = *new ShaderFill(*render->CreateShaderSet());
     LitSolid->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Vertex, VShader_MVP)); 
@@ -243,6 +338,7 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Floor,      fills)));
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Ceiling,    fills)));
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Table,  fills)));
+	scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Cushions,  fills)));
 
 	static const float ballRadius = 0.060f;
 	static const float ballDiameter = ballRadius * 2.f;
