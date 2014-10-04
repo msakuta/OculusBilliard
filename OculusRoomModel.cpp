@@ -41,6 +41,7 @@ enum BuiltinTexture
     Tex_Block,
     Tex_Panel,
 	Tex_Table,
+	Tex_CueBall,
 	Tex_Ball1,
 	Tex_Ball2,
 	Tex_Ball3,
@@ -134,11 +135,11 @@ Slab FixtureSlabs[] =
 
 SlabModel Fixtures = {sizeof(FixtureSlabs)/sizeof(Slab), FixtureSlabs};
 
-static const float longEnd = 2.0f;
-static const float shortEnd = 1.0f;
+static const float longEnd = 2.7f;
+static const float shortEnd = longEnd / 2.f;
 static const float inset = 0.1f;
 static const float outset = 0.1f;
-static const float height = 0.9f;
+static const float height = 0.75f;
 static const float rim = 0.1f;
 
 static const Slab TableSlabs[] =
@@ -227,6 +228,7 @@ FillCollection::FillCollection(RenderDevice* render)
     }
 
 	LoadTexture("images/field.png", builtinTextures[Tex_Table], render);
+	LoadTexture("images/cueball.png", builtinTextures[Tex_CueBall], render);
 	for(int c = 0; c < 15; c++){
 		std::stringstream sbuf;
 		sbuf << "images/ball" << (c + 1) << ".png";
@@ -367,11 +369,17 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
 	static const float ballRadius = 0.060f;
 	static const float ballDiameter = ballRadius * 2.f;
 
+	Model *ball = new Model(Prim_Triangles);
+	ball->SetPosition(Vector3f(-longEnd * 0.75, height + ballRadius, 0));
+	ball->AddSphere(ballRadius, Model::LongLat);
+	ball->Fill = fills.LitTextures[Tex_CueBall];
+	scene->World.Add(Ptr<Model>(*ball));
+
 	int ballNum = 0;
 	for(int iz = 0; iz < 5; iz++){
 		for(int ix = 0; ix <= iz; ix++){
 			Model *ball = new Model(Prim_Triangles);
-			ball->SetPosition(Vector3f(-ix * ballRadius * sqrt(3.f), height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius));
+			ball->SetPosition(Vector3f(-ix * ballRadius * sqrt(3.f) + longEnd * 0.5, height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius));
 			ball->AddSphere(ballRadius, Model::MirrorProjection, 1., -1., 0, 1.);
 			ball->Fill = fills.LitTextures[int(Tex_Ball1) + ballNum++];
 			scene->World.Add(Ptr<Model>(*ball));
