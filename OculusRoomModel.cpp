@@ -24,6 +24,8 @@ limitations under the License.
 
 #include "libpng/png.h"
 
+#include "OculusBoard.h"
+
 #include <sstream>
 #include <vector>
 
@@ -354,6 +356,7 @@ Model* CreateModel(Vector3f pos, const SlabModel* sm, const FillCollection& fill
     return m;
 }
 
+Board board(-longEnd, -shortEnd, longEnd, shortEnd);
 
 // Adds sample models and lights to the argument scene.
 void PopulateRoomScene(Scene* scene, RenderDevice* render)
@@ -369,22 +372,34 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
 	static const float ballRadius = 0.060f;
 	static const float ballDiameter = ballRadius * 2.f;
 
-	Model *ball = new Model(Prim_Triangles);
-	ball->SetPosition(Vector3f(-longEnd * 0.75, height + ballRadius, 0));
-	ball->AddSphere(ballRadius, Model::LongLat);
-	ball->Fill = fills.LitTextures[Tex_CueBall];
-	scene->World.Add(Ptr<Model>(*ball));
+	board.init();
+
+	Container *boardContainer = new Container;
+	boardContainer->SetPosition(Vector3f(0, height + ballRadius, 0));
+
+	Model *model = new Model(Prim_Triangles);
+	board.cue.model = model;
+	board.cue.rad = ballRadius;
+//	ball->SetPosition();
+	model->AddSphere(ballRadius, Model::LongLat);
+	model->Fill = fills.LitTextures[Tex_CueBall];
+	boardContainer->Add(Ptr<Model>(*model));
 
 	int ballNum = 0;
 	for(int iz = 0; iz < 5; iz++){
 		for(int ix = 0; ix <= iz; ix++){
-			Model *ball = new Model(Prim_Triangles);
-			ball->SetPosition(Vector3f(-ix * ballRadius * sqrt(3.f) + longEnd * 0.5, height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius));
-			ball->AddSphere(ballRadius, Model::MirrorProjection, 1., -1., 0, 1.);
-			ball->Fill = fills.LitTextures[int(Tex_Ball1) + ballNum++];
-			scene->World.Add(Ptr<Model>(*ball));
+			Model *model = new Model(Prim_Triangles);
+			Ball &ball = board.balls[ballNum];
+			ball.model = model;
+			ball.rad = ballRadius;
+			ball.pos = Vector3d(-ix * ballRadius * sqrt(3.f) + longEnd * 0.5, height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius);
+			model->AddSphere(ballRadius, Model::MirrorProjection, 1., -1., 0, 1.);
+			model->Fill = fills.LitTextures[int(Tex_Ball1) + ballNum++];
+			boardContainer->Add(Ptr<Model>(*model));
 		}
 	}
+
+	scene->World.Add(boardContainer);
 
 
     scene->SetAmbient(Vector4f(0.65f,0.65f,0.65f,1));

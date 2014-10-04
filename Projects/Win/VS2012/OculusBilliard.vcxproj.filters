@@ -11,6 +11,8 @@
     <ClCompile Include="../../../Win32_OculusRoomTiny_Util.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\OculusBall.cpp" />
+    <ClCompile Include="..\..\..\OculusBoard.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Util">
@@ -21,5 +23,8 @@
     <ClInclude Include="../../../RenderTiny_D3D11_Device.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\ball.h" />
+    <ClInclude Include="..\..\..\OculusBall.h" />
+    <ClInclude Include="..\..\..\OculusBoard.h" />
   </ItemGroup>
 </Project>

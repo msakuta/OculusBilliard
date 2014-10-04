@@ -98,7 +98,7 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>OVR_BUILD_DEBUG;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../../../LibOVR/Include;../../../../../3rdParty/glext;../../../../../LibOVR/Src;../../../libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../../../LibOVR/Include;../../../../../3rdParty/glext;../../../../../LibOVR/Src;../../../libpng;../../../clib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
@@ -140,7 +140,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../../../../../LibOVR/Include;../../../../../3rdParty/glext;../../../../../LibOVR/Src;../../../libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../../../LibOVR/Include;../../../../../3rdParty/glext;../../../../../LibOVR/Src;../../../libpng;../../../clib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -186,9 +186,14 @@
     <ClCompile Include="../../../RenderTiny_D3D11_Device.cpp" />
     <ClCompile Include="../../../Win32_OculusRoomTiny.cpp" />
     <ClCompile Include="../../../Win32_OculusRoomTiny_Util.cpp" />
+    <ClCompile Include="..\..\..\OculusBall.cpp" />
+    <ClCompile Include="..\..\..\OculusBoard.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../../../RenderTiny_D3D11_Device.h" />
+    <ClInclude Include="..\..\..\ball.h" />
+    <ClInclude Include="..\..\..\OculusBall.h" />
+    <ClInclude Include="..\..\..\OculusBoard.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

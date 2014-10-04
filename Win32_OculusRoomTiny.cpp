@@ -43,6 +43,8 @@ void Util_ReleaseWindowAndGraphics (RenderDevice* pRender);
 bool Util_RespondToControls        (float & EyeYaw, Vector3f & EyePos, Quatf PoseOrientation);
 void PopulateRoomScene             (Scene* scene, RenderDevice* render);
 
+#include "OculusBoard.h"
+
 //Structures for the application
 ovrHmd             HMD;
 ovrEyeRenderDesc   EyeRenderDesc[2];
@@ -240,6 +242,8 @@ void ProcessAndRender()
     ovrHSWDisplayState hswDisplayState;
     ovrHmd_GetHSWDisplayState(HMD, &hswDisplayState);
     #endif
+
+	board.anim(0.02);
 
 	// Adjust eye position and rotation from controls, maintaining y position from HMD.
 	static float    BodyYaw(3.141592f);
