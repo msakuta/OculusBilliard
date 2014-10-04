@@ -64,9 +64,6 @@ void Ball::anim(Board &b, double dt){
 	Ball (&balls)[sizeof(b.balls) / sizeof(Ball)] = b.balls;
 	aaccel = Vector3d(0,0,0);
 	pos += velo * dt;
-/*	amat4_t mat;
-	amat3_t omgt, nmat3;*/
-	Quatd qomg, q, qbackup;
 
 	if(trail1 == trail0 || .2 * .2 < (pos - trails[trail1]).LengthSq()){
 		trail1 = (trail1+1) % (sizeof(trails) / sizeof*trails);
@@ -84,7 +81,8 @@ void Ball::anim(Board &b, double dt){
 	VECCPY(omg, SOmg);
 #else
 	// rotation
-	rot.Rotate(omg * (dt / 2.));
+	if(1e-6 < omg.LengthSq() && 1e-6 < dt)
+		rot = (rot * Quatd(omg, dt / 2.)).Normalized();
 
 /*	if(nmat){
 		QUATCPY(qbackup, pt->rot);

@@ -22,6 +22,8 @@ limitations under the License.
 #include "RenderTiny_D3D11_Device.h"
 #include "OVR_CAPI.h"
 
+#include "OculusBoard.h"
+
 // Win32 System Variables
 HWND                hWnd = NULL;
 HINSTANCE           hInstance;    
@@ -71,6 +73,8 @@ void OnKey(unsigned vk, bool down)
     case 'S':       MoveBack    = down ? (MoveBack    | 1) : (MoveBack    & ~1);  break;
     case 'A':       MoveLeft    = down ? (MoveLeft    | 1) : (MoveLeft    & ~1);  break;
     case 'D':       MoveRight   = down ? (MoveRight   | 1) : (MoveRight   & ~1);  break;
+
+	case 'G':       board.shoot(); break;
 
     case VK_UP:     MoveForward = down ? (MoveForward | 2) : (MoveForward & ~2);  break;
     case VK_DOWN:   MoveBack    = down ? (MoveBack    | 2) : (MoveBack    & ~2);  break;

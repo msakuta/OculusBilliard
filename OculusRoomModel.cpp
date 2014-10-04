@@ -356,7 +356,7 @@ Model* CreateModel(Vector3f pos, const SlabModel* sm, const FillCollection& fill
     return m;
 }
 
-Board board(-longEnd, -shortEnd, longEnd, shortEnd);
+Board board(-longEnd + inset, -shortEnd + inset, longEnd - inset, shortEnd - inset);
 
 // Adds sample models and lights to the argument scene.
 void PopulateRoomScene(Scene* scene, RenderDevice* render)

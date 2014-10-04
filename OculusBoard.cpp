@@ -23,7 +23,7 @@ static bool world_init = false;
 
 const double floor_friction = .3, constant_friction = 1*.2;
 const double Ball::mass = 1.;
-const double Ball::moi = 2. / 5. * mass * 1e0; // moment of inertia
+const double Ball::moi = 2. / 5. * mass * 0.060; // moment of inertia
 double G = 98. * 4;
 
 static void world_initialize(){
@@ -129,8 +129,10 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 
 #define EPSILON 1e-10
 
-void Board::anim(double dt){
+void Board::anim(double dt, const Vector3f &headPos){
 	int i, j, t;
+	for(int i = 0; i < 3; i++)
+		this->headPos[i] = headPos[i];
 #if USEODE
 	double simstep = 0.001; // 1ms simulation steps
 	for(i = 0; i < 10; i++){
@@ -166,4 +168,8 @@ bool Board::isStatic()const{
 	for(i = 0; i < numof(balls); i++) if(balls[i].velo.LengthSq() < EPSILON && balls[i].omg.LengthSq() < EPSILON);
 	else return false;
 	return true;
+}
+
+void Board::shoot(){
+	cue.velo += (cue.pos - headPos).Normalized() * 5.;
 }
