@@ -24,6 +24,7 @@ limitations under the License.
 
 #include "libpng/png.h"
 
+#include <sstream>
 #include <vector>
 
 //-------------------------------------------------------------------------------------
@@ -40,7 +41,21 @@ enum BuiltinTexture
     Tex_Block,
     Tex_Panel,
 	Tex_Table,
-	Tex_Ball,
+	Tex_Ball1,
+	Tex_Ball2,
+	Tex_Ball3,
+	Tex_Ball4,
+	Tex_Ball5,
+	Tex_Ball6,
+	Tex_Ball7,
+	Tex_Ball8,
+	Tex_Ball9,
+	Tex_Ball10,
+	Tex_Ball11,
+	Tex_Ball12,
+	Tex_Ball13,
+	Tex_Ball14,
+	Tex_Ball15,
     Tex_Count
 };
 
@@ -212,7 +227,11 @@ FillCollection::FillCollection(RenderDevice* render)
     }
 
 	LoadTexture("images/field.png", builtinTextures[Tex_Table], render);
-	LoadTexture("images/ball1.png", builtinTextures[Tex_Ball], render);
+	for(int c = 0; c < 15; c++){
+		std::stringstream sbuf;
+		sbuf << "images/ball" << (c + 1) << ".png";
+		LoadTexture(sbuf.rdbuf()->str().c_str(), builtinTextures[Tex_Ball1 + c], render);
+	}
 
 	LitSolid = *new ShaderFill(*render->CreateShaderSet());
 	LitSolid->GetShaders()->SetShader(render->LoadBuiltinShader(Shader_Vertex, VShader_MVP));
@@ -348,12 +367,13 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
 	static const float ballRadius = 0.060f;
 	static const float ballDiameter = ballRadius * 2.f;
 
+	int ballNum = 0;
 	for(int iz = 0; iz < 5; iz++){
 		for(int ix = 0; ix <= iz; ix++){
 			Model *ball = new Model(Prim_Triangles);
 			ball->SetPosition(Vector3f(-ix * ballRadius * sqrt(3.f), height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius));
-			ball->AddSphere(ballRadius, 2., 1.);
-			ball->Fill = fills.LitTextures[Tex_Ball];
+			ball->AddSphere(ballRadius, Model::MirrorProjection, 1., -1., 0, 1.);
+			ball->Fill = fills.LitTextures[int(Tex_Ball1) + ballNum++];
 			scene->World.Add(Ptr<Model>(*ball));
 		}
 	}

@@ -579,50 +579,71 @@ void Model::AddSolidColorBox(float x1, float y1, float z1,
     }
 }
 
-void Model::AddSphere(float scale, float texScaleS, float texScaleT)
+void Model::AddSphere(float scale, TextureMode tmode, float texScaleS, float texScaleT, float texOffsetS, float texOffsetT)
 {
 	const double M_PI = 3.14159265358979;
 	int slices = 16, stacks = 8;
 
 	uint16_t startIndex = GetNextVertexIndex();
 
-	Vector3f northPos(0, scale, 0);
-	AddVertex(Vertex(northPos, Color(127, 127, 127, 255), 0, 1, northPos));
-
-	Vector3f southPos(0, -scale, 0);
-	AddVertex(Vertex(southPos, Color(127, 127, 127, 255), 0, 0, southPos));
-
-	for (int s = 0; s <= slices; s++)
-	{
-		double sangle = s * M_PI * 2. / slices;
-		for (int t = 0; t <= stacks; t++)
+	auto vertexGen = [&](int sstart, int send, bool mirror){
+		uint16_t lastIdx = -1;
+		for (int s = sstart; s <= send; s++)
 		{
-			double tangle = t * M_PI / stacks - M_PI;
-			Vector3f v = Vector3f(cos(sangle) * sin(tangle), cos(tangle), sin(sangle) * sin(tangle));
-			AddVertex(Vertex(v * scale, Color(127,127,127,255), texScaleS * float(s) / slices, texScaleT * float(t) / stacks, v));
+			double sangle = s * M_PI * 2. / slices;
+			for (int t = 0; t <= stacks; t++)
+			{
+				double tangle = t * M_PI / stacks - M_PI;
+				Vector3f v = Vector3f(cos(sangle) * sin(tangle), cos(tangle), sin(sangle) * sin(tangle));
+				double ts;
+				double tt;
+				if(tmode == LongLat){
+					ts = texScaleS * float(s) / slices + texOffsetS;
+					tt = min(1, max(0, texScaleT * float(t) / stacks + texOffsetT));
+				}
+				else{
+					ts = ((mirror ? -1 : 1) * v[0] + 1.0) * 0.5 * texScaleS + texOffsetS;
+					tt =(v[1] + 1.0) * 0.5 * texScaleT + texOffsetT;
+				}
+				lastIdx = AddVertex(Vertex(v * scale, Color(127,127,127,255), ts, tt, v));
+			}
 		}
-	}
-
-	startIndex += 2;
+		return lastIdx;
+	};
 
 	// Renumber indices
-	for (uint16_t s = 0; s < slices; s++)
-	{
-		for (uint16_t t = 0; t < stacks; t++)
+	auto renumberIndices = [&](int sstart, int send, int startIndex){
+//		startIndex += 2;
+		for (uint16_t s = 0; s < slices; s++)
 		{
-			uint16_t s1 = s + 1;
-			uint16_t t1 = t + 1;
-			auto get = [&](uint16_t s, uint16_t t){
-				return s * (stacks + 1) + t + startIndex;
-			};
-			AddTriangle(get(s, t),
-				get(s1, t),
-				get(s, t1));
-			AddTriangle(get(s1, t),
-				get(s1, t1),
-				get(s, t1));
+			for (uint16_t t = 0; t < stacks; t++)
+			{
+				uint16_t s1 = s + 1;
+				uint16_t t1 = t + 1;
+				auto get = [&](uint16_t s, uint16_t t){
+					return s * (stacks + 1) + t + startIndex;
+				};
+				AddTriangle(get(s, t),
+					get(s1, t),
+					get(s, t1));
+				AddTriangle(get(s1, t),
+					get(s1, t1),
+					get(s, t1));
+			}
 		}
+	};
+
+	if(tmode == MirrorProjection){
+		uint16_t firstHalf = vertexGen(0, slices / 2, false);
+		renumberIndices(0, slices / 2, startIndex);
+		uint16_t lastHalf = vertexGen(slices / 2, slices, true);
+		renumberIndices(slices / 2, slices, firstHalf + 1);
 	}
+	else{
+		vertexGen(0, slices, false);
+		renumberIndices(0, slices, startIndex);
+	}
+
 }
 
 void Model::AddCylinder(float radius, float height)

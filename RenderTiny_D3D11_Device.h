@@ -553,7 +553,13 @@ public:
                            float x2, float y2, float z2,
                            Color c);
 
-	void AddSphere(float scale = 1.0f, float texScaleS = 1.0f, float texScaleT = 1.0f);
+	enum TextureMode{
+		LongLat, // Longitude/latitude coordinates
+		Projection, // Projection along z axis
+		MirrorProjection, // Projection with flipped x when z < 0
+		Num_TextureMode
+	};
+	void AddSphere(float scale = 1.0f, TextureMode mode = LongLat, float texScaleS = 1.0f, float texScaleT = 1.0f, float texOffsetS = 0.f, float texOffsetT = 0.f);
 
 	void AddCylinder(float radius = 1.0f, float length = 1.0f);
 };
