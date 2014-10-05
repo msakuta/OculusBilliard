@@ -1,6 +1,6 @@
 #include "OculusBall.h"
 #include "OculusBoard.h"
-
+#include <sstream>
 
 const double floor_friction = .3, constant_friction = 1*.2;
 
@@ -22,6 +22,27 @@ void Ball::init(const Vector3d &pos){
 #endif
 }
 
+/// Temporary operator overload for Vector3d's debug output
+inline std::ostream &operator <<(std::ostream &ss, Vector3d &v){
+	return ss << "(" << v[0] << "," << v[1] << "," << v[2] << ")";
+}
+
+/// Get a ball's name
+static std::string getName(const Ball *b){
+	if(0 <= b - board.balls && b - board.balls < sizeof(board.balls) / sizeof*board.balls){
+		std::stringstream ss;
+		ss << std::string("ball") << (b - board.balls);
+		return ss.str();
+	}
+	else if(b == &board.cue)
+		return std::string("cueball");
+	else{
+		std::stringstream ss;
+		ss << std::string("unknown(") << b << ")";
+		return ss.str();
+	}
+};
+
 void Ball::collide(Ball &o){
 	static double elasticity = .99;
 	Vector3d delta = (pos - o.pos);
@@ -29,6 +50,11 @@ void Ball::collide(Ball &o){
 	double cs = (velo - o.velo).Dot(n); // Closing Speed
 	velo -= n * cs * elasticity;
 	o.velo += n * cs * elasticity;
+#ifdef _WIN32
+	std::stringstream ss;
+	ss << "OculusBall collision(" << board.globalTime << "): " << getName(this) << pos << " and " << getName(&o) << o.pos << " in distance of " << pos.Distance(o.pos) << std::endl;
+	OutputDebugStringA(ss.str().c_str());
+#endif
 }
 
 
@@ -91,7 +117,7 @@ void Ball::anim(Board &b, double dt){
 		VECSADD(&(*nmat)[12], pt->velo, dt);
 		QUATCPY(pt->rot, qbackup);
 	}*/
-	static const double G = 1.;
+	static const double G = 9.8;
 	static double elasticity = .5;
 	velo[1] -= G * dt;
 	if(pos[1] < 0.){

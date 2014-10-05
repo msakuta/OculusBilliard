@@ -7,6 +7,7 @@ public:
 	double x0, y0, x1, y1;
 	Ball balls[15], cue;
 	Vector3d headPos;
+	double globalTime;
 	Board(double ax0, double ay0, double ax1, double ay1);
 	void init();
 	void anim(double dt, const Vector3f &headPos);

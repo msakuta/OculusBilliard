@@ -72,10 +72,11 @@ void Board::init(){
 	}
 	cue = Ball(Vector3d(0, -10, 0), Vector3d(0,0,0));
 	cue.rad = .1;
+	globalTime = 0.;
 }
 
 
-Board::Board(double ax0, double ay0, double ax1, double ay1) : x0(ax0), y0(ay0), x1(ax1), y1(ay1){
+Board::Board(double ax0, double ay0, double ax1, double ay1) : x0(ax0), y0(ay0), x1(ax1), y1(ay1), globalTime(0.){
 }
 
 
@@ -159,6 +160,7 @@ void Board::anim(double dt, const Vector3f &headPos){
 		for(i = 0; i < numof(balls); i++){
 			balls[i].anim(*this, dt);
 		}
+		globalTime += dt;
 	}
 #endif
 }
