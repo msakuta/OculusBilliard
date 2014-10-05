@@ -393,7 +393,7 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
 			ball.model = model;
 			ball.rad = ballRadius;
 			ball.pos = Vector3d(-ix * ballRadius * sqrt(3.f) + longEnd * 0.5, height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius);
-			model->AddSphere(ballRadius, Model::MirrorProjection, 1., -1., 0, 1.);
+			model->AddSphere(ballRadius, Model::MirrorProjection, -1., -1., 1., 1.);
 			model->Fill = fills.LitTextures[int(Tex_Ball1) + ballNum++];
 			boardContainer->Add(Ptr<Model>(*model));
 		}
