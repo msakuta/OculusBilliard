@@ -45,6 +45,10 @@ void PopulateRoomScene             (Scene* scene, RenderDevice* render);
 
 #include "OculusBoard.h"
 
+#ifndef _WIN32
+#include <time.h>
+#endif
+
 //Structures for the application
 ovrHmd             HMD;
 ovrEyeRenderDesc   EyeRenderDesc[2];
@@ -232,6 +236,7 @@ int Init()
 void ProcessAndRender()
 {
     static ovrPosef eyeRenderPose[2]; 
+	static double lastTime = 0.;
 
 	// Start timing
     #if SDK_RENDER
@@ -249,7 +254,20 @@ void ProcessAndRender()
 	HeadPos.y = ovrHmd_GetFloat(HMD, OVR_KEY_EYE_HEIGHT, HeadPos.y);
 	bool freezeEyeRender = Util_RespondToControls(BodyYaw, HeadPos, eyeRenderPose[1].Orientation);
 
-	board.anim(0.02, HeadPos);
+#ifdef _WIN32
+	LARGE_INTEGER count;
+	QueryPerformanceCounter(&count);
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+	double clockTime = (double)count.QuadPart / (double)freq.QuadPart;
+#else
+	double clockTime = (double)clock() / CLOCKS_PER_SEC;
+#endif
+
+	if(lastTime != 0.)
+		board.anim(clockTime - lastTime, HeadPos);
+	lastTime = clockTime;
+
 
      pRender->BeginScene();
     
