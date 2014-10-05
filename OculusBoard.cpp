@@ -23,7 +23,7 @@ static bool world_init = false;
 
 const double floor_friction = .3, constant_friction = 1*.2;
 const double Ball::mass = 1.;
-const double Ball::moi = 2. / 5. * mass * 0.060; // moment of inertia
+const double Ball::moi = 2. / 5. * mass * 0.060 * 0.060; // moment of inertia
 double G = 98. * 4;
 
 static void world_initialize(){

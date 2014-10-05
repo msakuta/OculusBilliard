@@ -107,8 +107,8 @@ void Ball::anim(Board &b, double dt){
 	VECCPY(omg, SOmg);
 #else
 	// rotation
-	if(1e-6 < omg.LengthSq() && 1e-6 < dt)
-		rot = (rot * Quatd(omg, dt / 2.)).Normalized();
+	if(1e-10 < omg.LengthSq() && 1e-6 < dt)
+		rot = (rot * Quatd(omg, omg.Length() * dt)).Normalized();
 
 /*	if(nmat){
 		QUATCPY(qbackup, pt->rot);
