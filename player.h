@@ -3,6 +3,7 @@
 #include <cstring>
 extern "C"{
 #include <clib/aquat.h>
+#include <clib/mathdef.h>
 }
 #include <cpplib/quat.h>
 
@@ -18,7 +19,7 @@ class Player{
 public:
 	Player(){
 		std::memset(this, 0, sizeof *this);
-		rot[3] = 1.;
+		rot = Quatd::rotation(M_PI / 6., Vec3d(1, 0, 0));
 	}
 	Vec3d pos;
 	Vec3d velo;

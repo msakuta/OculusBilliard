@@ -24,8 +24,10 @@ static bool world_init = false;
 
 const double floor_friction = .3, constant_friction = 1*.2;
 const double Ball::mass = 1.;
-const double Ball::moi = 2. / 5. * mass * 1e0; // moment of inertia
+const double Ball::moi = 2. / 5. * mass * defaultRadius * defaultRadius; // moment of inertia
 double G = 98. * 4;
+
+const double Ball::defaultRadius = 0.060; // Meters
 
 static void world_initialize(){
 	world_init = true;
@@ -49,7 +51,7 @@ static void world_initialize(){
 void Ball::init(const Vec3d pos){
 	if(!world_init)
 		return;
-	rad = 1.;
+	rad = defaultRadius;
 	trail0 = trail1 = 0;
 #if USEODE
 	dMass m;
@@ -205,9 +207,10 @@ void Board::init(){
 	int i, ix = 0, iy = 0;
 	for(i = 0; i < numof(balls); i++){
 		if(i == 0)
-			balls[i] = Ball(Vec3d(0, 0, 20), vec3_000, vec3_000);
+			balls[i] = Ball(Vec3d(0, 0, (x1 - x0) * .5), vec3_000, vec3_000);
 		else{
-			double x = 2. * ix - iy, z = -2. * iy * sqrt(3.) / 2.;
+			double x = Ball::defaultRadius * (2. * ix - iy);
+			double z = Ball::defaultRadius * (-2. * iy * sqrt(3.) / 2.);
 			Vec3d pos = Vec3d(x, 0, z);
 	//		x = drseq(&rs) * 50 - 25, z = drseq(&rs) * 50 - 25;
 			Vec3d velo = Vec3d(0, 0, 0);

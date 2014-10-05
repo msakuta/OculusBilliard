@@ -50,21 +50,23 @@ dSpaceID space;
 
 static double g_fix_dt = 0.;
 static double gametimescale = 1.;
-static double g_space_near_clip = 0.1, g_space_far_clip = 1e4;
+static double g_space_near_clip = 0.01, g_space_far_clip = 1e4;
 bool mouse_captured = false;
 static bool pause = false, charging = false;
 static double power = 0.;
 static double deviation[2];
+static const double tableLength = 3.7 / 2.;
+static const double tableWidth = tableLength / 2.;
 
 enum directionset{LEFT = 1, RIGHT = 2, FORWARD = 4, BACKWARD = 8, DOWNWARD = 16, UPWARD = 32};
 int keystate = 0;
 
 Player pl;
 Graphic gr;
-Board board(-20, -40, 20, 40);
+Board board(-tableWidth, -tableLength, tableWidth, tableLength);
 
 int selected = 0;
-double view_dist = 20;
+double view_dist = 2;
 static bool freelook = false;
 static bool g_wireframe = false;
 
@@ -203,13 +205,13 @@ void draw_func(Viewer &vw, double dt){
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
 		glMultMatrixd(vw.irot);
-		glTranslated(deviation[0], deviation[1], 1);
+		glTranslated(deviation[0], deviation[1], Ball::defaultRadius);
 		glColor4ub(255,0,0,127);
 		int i;
 		double (*cuts)[2] = CircleCuts(8);
 		glBegin(GL_POLYGON);
 		for(i = 0; i < 8; i++)
-			glVertex2d(.1 * cuts[i][0], .1 * cuts[i][1]);
+			glVertex2d(Ball::defaultRadius * .1 * cuts[i][0], Ball::defaultRadius * .1 * cuts[i][1]);
 		glEnd();
 		glPopAttrib();
 	}

@@ -168,7 +168,7 @@ void Ball::drawShadow(const Board &b)const{
 	double (*cuts)[2] = CircleCuts(16);
 	int i;
 	for(i = 0; i < 16; i++)
-		glVertex3d(pos[0] + cuts[i][0] * rad, -1, pos[2] + cuts[i][1] * rad);
+		glVertex3d(pos[0] + cuts[i][0] * rad, -Ball::defaultRadius, pos[2] + cuts[i][1] * rad);
 	glEnd();
 	glPopAttrib();
 }
@@ -202,6 +202,7 @@ void lightOn(){
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 }
 
+static const double railHeight = 2 * Ball::defaultRadius;
 static double beginVertex[3];
 static bool beginVertexAvailable = false;
 
@@ -214,7 +215,7 @@ static void  WINAPI end(void *data){
 	double *vd = beginVertex;
 	if(beginVertexAvailable){
 		glVertex3d(vd[0], vd[1], vd[2]);
-		glVertex3d(vd[0], vd[1] - 1., vd[2]);
+		glVertex3d(vd[0], vd[1] - railHeight, vd[2]);
 	}
 	glEnd();
 }
@@ -230,7 +231,7 @@ static void  WINAPI vertex2(GLdouble *vd){
 	glTexCoord2d(((double*)vd)[0] / 5., ((double*)vd)[2] / 5.);
 	glNormal3d(vd[2], 0, -vd[0]);
 	glVertex3d(vd[0], vd[1], vd[2]);
-	glVertex3d(vd[0], vd[1] - 1., vd[2]);
+	glVertex3d(vd[0], vd[1] - railHeight, vd[2]);
 	if(!beginVertexAvailable){
 		beginVertexAvailable = true;
 		VECCPY(beginVertex, vd);
@@ -263,7 +264,7 @@ void Board::draw(){
 //	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	lightOn();
 
-	int bx0 = -100, bx1 = 100, by0 = -100, by1 = 100, bz0 = -30, bz1 = 170;
+	static const double bx0 = -5, bx1 = 5, by0 = -10, by1 = 10, bz0 = -0.7, bz1 = 3;
 	glPushAttrib(GL_TEXTURE_BIT);
 	glCallList(texlist);
 	glDisable(GL_DEPTH_TEST);
@@ -322,8 +323,8 @@ void Board::draw(){
 	int x, y;
 	static GLuint boardmodel = 0;
 	static GLUtesselator *tobj = NULL;
-	const double holerad = 2.;
-	const double border = 5.;
+	const double holerad = Ball::defaultRadius * 2.;
+	const double border = 0.2;
 	const GLfloat aad[4] = {1, 1, 1, 1};
 	double (*cuts)[2] = CircleCuts(8);
 	if(!boardmodel){
@@ -377,32 +378,9 @@ void Board::draw(){
 
 //	gluDeleteTess(tobj);
 
-	const double pointrad = .1;
-	glDisable(GL_TEXTURE_2D);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, aad);
-	for(y = 1; y < 4; y++) for(x = 0; x < 2; x++){
-		double dx = x ? x1 + border / 2 : x0 - border / 2, dy = y0 * y / 4;
-		glBegin(GL_POLYGON);
-		for(i = 0; i < 8; i++)
-			glVertex3d(dx + cuts[i][0] * pointrad, -1, dy + cuts[i][1] * pointrad);
-		glEnd();
-		glBegin(GL_POLYGON);
-		dy *= -1;
-		for(i = 0; i < 8; i++)
-			glVertex3d(dx + cuts[i][0] * pointrad, -1, dy + cuts[i][1] * pointrad);
-		glEnd();
-	}
-
-	for(y = 0; y < 2; y++) for(x = 1; x <= 3; x++){
-		double dx = (x1 * (4 - x) + x0 * x) / 4, dy = y == 0 ? y0 - border / 2 : y1 + border / 2;
-		glBegin(GL_POLYGON);
-		for(i = 0; i < 8; i++)
-			glVertex3d(dx + cuts[i][0] * pointrad, -1, dy + cuts[i][1] * pointrad);
-		glEnd();
-	}
-
 	glPushAttrib(GL_TEXTURE_BIT | GL_LIGHTING_BIT);
 
+	// Table cloth
 	glCallList(texfield);
 	const GLfloat field_aad[4] = {.2f, .5f, .5f, 1.f};
 	const GLfloat spec[] = {0,0,0,1};
@@ -410,67 +388,105 @@ void Board::draw(){
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, field_aad);
 	glNormal3d(0, 1, 0);
 	glBegin(GL_QUADS);
-	glTexCoord2d(x0 / 5, y0 / 5); glVertex3d(x0, -1, y0);
-	glTexCoord2d(x0 / 5, y1 / 5); glVertex3d(x0, -1, y1);
-	glTexCoord2d(x1 / 5, y1 / 5); glVertex3d(x1, -1, y1);
-	glTexCoord2d(x1 / 5, y0 / 5); glVertex3d(x1, -1, y0);
+	glTexCoord2d(x0, y0); glVertex3d(x0, -Ball::defaultRadius, y0);
+	glTexCoord2d(x0, y1); glVertex3d(x0, -Ball::defaultRadius, y1);
+	glTexCoord2d(x1, y1); glVertex3d(x1, -Ball::defaultRadius, y1);
+	glTexCoord2d(x1, y0); glVertex3d(x1, -Ball::defaultRadius, y0);
 	glEnd();
 
 	glPopAttrib();
 
+	// Pocket holes
 	glDisable(GL_LIGHTING);
 	glColor4ub(0,0,0,255);
 	for(y = 0; y < 3; y++) for(x = 0; x < 2; x++){
 		double dx = x ? x1 : x0, dy = y == 0 ? y0 : y == 1 ? 0. : y1;
 		glBegin(GL_POLYGON);
 		for(i = 0; i < 8; i++)
-			glVertex3d(dx + cuts[i][0] * holerad, -1, dy + cuts[i][1] * holerad);
+			glVertex3d(dx + cuts[i][0] * holerad, -Ball::defaultRadius, dy + cuts[i][1] * holerad);
 		glEnd();
 	}
 
+	// Ball shadows
 	for(i = 0; i < numof(balls); i++){
 		balls[i].drawShadow(*this);
 	}
 
 	glEnable(GL_DEPTH_TEST);
 
+	// Paint z-buffer with table's geometry
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glBegin(GL_QUADS);
-	glTexCoord2d(x0 / 5, y0 / 5); glVertex3d(x0 - border, -1, y0 - border);
-	glTexCoord2d(x0 / 5, y1 / 5); glVertex3d(x0 - border, -1, y1 + border);
-	glTexCoord2d(x1 / 5, y1 / 5); glVertex3d(x1 + border, -1, y1 + border);
-	glTexCoord2d(x1 / 5, y0 / 5); glVertex3d(x1 + border, -1, y0 - border);
+	glTexCoord2d(x0 / 5, y0 / 5); glVertex3d(x0 - border, -Ball::defaultRadius, y0 - border);
+	glTexCoord2d(x0 / 5, y1 / 5); glVertex3d(x0 - border, -Ball::defaultRadius, y1 + border);
+	glTexCoord2d(x1 / 5, y1 / 5); glVertex3d(x1 + border, -Ball::defaultRadius, y1 + border);
+	glTexCoord2d(x1 / 5, y0 / 5); glVertex3d(x1 + border, -Ball::defaultRadius, y0 - border);
 	glEnd();
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 	lightOn();
+
+	// Sights on rails on long edge
+	static const double pointrad = 0.01;
+	static const double pointheight = 0.001; // Shold be drawn as decals on rails
+	glDisable(GL_TEXTURE_2D);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, aad);
+	for(y = 1; y < 4; y++) for(x = 0; x < 2; x++){
+		double dx = x ? x1 + border / 2 : x0 - border / 2, dy = y0 * y / 4;
+		glBegin(GL_POLYGON);
+		for(i = 0; i < 8; i++)
+			glVertex3d(dx + cuts[i][0] * pointrad, pointheight, dy + cuts[i][1] * pointrad);
+		glEnd();
+		glBegin(GL_POLYGON);
+		dy *= -1;
+		for(i = 0; i < 8; i++)
+			glVertex3d(dx + cuts[i][0] * pointrad, pointheight, dy + cuts[i][1] * pointrad);
+		glEnd();
+	}
+
+	// Sights on rails on short edge
+	for(y = 0; y < 2; y++) for(x = 1; x <= 3; x++){
+		double dx = (x1 * (4 - x) + x0 * x) / 4, dy = y == 0 ? y0 - border / 2 : y1 + border / 2;
+		glBegin(GL_POLYGON);
+		for(i = 0; i < 8; i++)
+			glVertex3d(dx + cuts[i][0] * pointrad, pointheight, dy + cuts[i][1] * pointrad);
+		glEnd();
+	}
+
 	glCallList(texwood);
 	glCallList(boardmodel);
 
+	static const double railBottom = -railHeight * 2.;
 	glBegin(GL_QUADS);
-	glNormal3d(-1, 0, 0);
-	glTexCoord2d(y0 / 5, 0); glVertex3d(x0 - border, -1, y0 - border);
-	glTexCoord2d(y0 / 5, 1); glVertex3d(x0 - border, -1 - 5, y0 - border);
-	glTexCoord2d(y1 / 5, 1); glVertex3d(x0 - border, -1 - 5, y1 + border);
-	glTexCoord2d(y1 / 5, 0); glVertex3d(x0 - border, -1, y1 + border);
-	glNormal3d(0, 0, -1);
-	glTexCoord2d(x0 / 5, 0); glVertex3d(x0 - border, -1, y1 + border);
-	glTexCoord2d(x0 / 5, 1); glVertex3d(x0 - border, -1 - 5, y1 + border);
-	glTexCoord2d(x1 / 5, 1); glVertex3d(x1 + border, -1 - 5, y1 + border);
-	glTexCoord2d(x1 / 5, 0); glVertex3d(x1 + border, -1, y1 + border);
+	for(int i = 0; i < 2; i++){
+		static const double heights[2] = {railBottom, -railHeight};
+		int sig = i * 2 - 1;
+		int f = i, s = 1 - i;
+		glNormal3d(-i, 0, 0);
+		glTexCoord2d(y0, heights[f]); glVertex3d(sig * (x0 - border), heights[f], y0 - border);
+		glTexCoord2d(y0, heights[s]); glVertex3d(sig * (x0 - border), heights[s], y0 - border);
+		glTexCoord2d(y1, heights[s]); glVertex3d(sig * (x0 - border), heights[s], y1 + border);
+		glTexCoord2d(y1, heights[f]); glVertex3d(sig * (x0 - border), heights[f], y1 + border);
+		glNormal3d(0, 0, -i);
+		glTexCoord2d(x0, heights[f]); glVertex3d(x0 - border, heights[f], sig * (y1 + border));
+		glTexCoord2d(x0, heights[s]); glVertex3d(x0 - border, heights[s], sig * (y1 + border));
+		glTexCoord2d(x1, heights[s]); glVertex3d(x1 + border, heights[s], sig * (y1 + border));
+		glTexCoord2d(x1, heights[f]); glVertex3d(x1 + border, heights[f], sig * (y1 + border));
 
-	glNormal3d(-1, 0, 0);
-	glTexCoord2d(y0 / 5, (-1 - 5) / 5); glVertex3d(x0 + border / 2, -1 - 5, y0 + border / 2);
-	glTexCoord2d(y0 / 5, bz0 / 5); glVertex3d(x0 + border / 2, bz0, y0 + border / 2);
-	glTexCoord2d(y1 / 5, bz0 / 5); glVertex3d(x0 + border / 2, bz0, y1 - border / 2);
-	glTexCoord2d(y1 / 5, (-1 - 5) / 5); glVertex3d(x0 + border / 2, -1 - 5, y1 - border / 2);
-	glNormal3d(0, 0, -1);
-	glTexCoord2d(x0 / 5, (-1 - 5) / 5); glVertex3d(x0 + border / 2, -1 - 5, y1 - border / 2);
-	glTexCoord2d(x0 / 5, bz0 / 5); glVertex3d(x0 + border / 2, bz0, y1 - border / 2);
-	glTexCoord2d(x1 / 5, bz0 / 5); glVertex3d(x1 - border / 2, bz0, y1 - border / 2);
-	glTexCoord2d(x1 / 5, (-1 - 5) / 5); glVertex3d(x1 - border / 2, -1 - 5, y1 - border / 2);
+		static const double flHeights[2] = {bz0, railBottom};
+		glNormal3d(-1, 0, 0);
+		glTexCoord2d(y0, flHeights[f]); glVertex3d(sig * (x0 + border / 2), flHeights[f], y0 + border / 2);
+		glTexCoord2d(y0, flHeights[s]); glVertex3d(sig * (x0 + border / 2), flHeights[s], y0 + border / 2);
+		glTexCoord2d(y1, flHeights[s]); glVertex3d(sig * (x0 + border / 2), flHeights[s], y1 - border / 2);
+		glTexCoord2d(y1, flHeights[f]); glVertex3d(sig * (x0 + border / 2), flHeights[f], y1 - border / 2);
+		glNormal3d(0, 0, -1);
+		glTexCoord2d(x0, flHeights[f]); glVertex3d(x0 + border / 2, flHeights[f], sig * (y1 - border / 2));
+		glTexCoord2d(x0, flHeights[s]); glVertex3d(x0 + border / 2, flHeights[s], sig * (y1 - border / 2));
+		glTexCoord2d(x1, flHeights[s]); glVertex3d(x1 - border / 2, flHeights[s], sig * (y1 - border / 2));
+		glTexCoord2d(x1, flHeights[f]); glVertex3d(x1 - border / 2, flHeights[f], sig * (y1 - border / 2));
+	}
 	glEnd();
-
+	
 	glPopAttrib();
 
 

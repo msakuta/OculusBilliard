@@ -33,6 +33,8 @@ public:
 	double getEnergy()const{
 		return velo.slen() * mass + omg.slen() * moi;
 	}
+
+	static const double defaultRadius;
 private:
 	void collide(Ball &o);
 	Vec3d trails[128];
