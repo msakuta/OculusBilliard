@@ -11,6 +11,8 @@ extern "C"{
 #include <clib/rseq.h>
 }
 
+#include <cpplib/mat3.h>
+
 
 #if USEODE
 extern dWorldID world;
@@ -22,12 +24,12 @@ static dJointGroupID contactgroup;
 static bool world_init = false;
 
 
-const double floor_friction = .3, constant_friction = 1*.2;
-const double Ball::mass = 1.;
+const double Board::floor_friction = .3, Board::constant_friction = .05;
+const double Ball::mass = 0.150; // 150 grams
 const double Ball::moi = 2. / 5. * mass * defaultRadius * defaultRadius; // moment of inertia
-double G = 98. * 4;
+static const double G = 9.8;
 
-const double Ball::defaultRadius = 0.060; // Meters
+const double Ball::defaultRadius = 0.030; // Meters
 
 static void world_initialize(){
 	world_init = true;
@@ -103,6 +105,18 @@ void Ball::concussion(const Vec3d &contact, const Vec3d &n){
 	aaccel += domg;*/
 }
 
+static Mat3d skewSymmetric(const Vec3d &v){
+	Mat3d ret;
+	ret[0] = ret[4] = ret[8] = 0.;
+	ret[1] = v[2];
+	ret[2] = -v[1];
+	ret[3] = -v[2];
+	ret[5] = v[0];
+	ret[6] = v[1];
+	ret[7] = -v[0];
+	return ret;
+}
+
 void Ball::anim(Board &b, double dt){
 	Ball (&balls)[numof(b.balls)] = b.balls;
 	aaccel = vec3_000;
@@ -127,10 +141,10 @@ void Ball::anim(Board &b, double dt){
 	VECCPY(omg, SOmg);
 #else
 	// rotation
-	qomg = omg.scale(dt / 2.);
-	q = qomg * rot;
-	rot += q;
-	rot.normin();
+	if(1e-10 < omg.slen()){
+		rot = Quatd::rotation(omg.len() * dt, omg.norm()) * rot;
+		rot.normin();
+	}
 
 /*	if(nmat){
 		QUATCPY(qbackup, pt->rot);
@@ -169,11 +183,57 @@ void Ball::anim(Board &b, double dt){
 		concussion(Vec3d(0, 0, rad), Vec3d(0, 0, -1));
 	}
 	if(pos[1] <= 0./* && velo[1] <= 0.*/){
-		if(velo[1] < G * dt)
-			velo[1] = 0.;
+/*		if(velo[1] < G * dt)
+			velo[1] = 0.;*/
 		const Vec3d contact = Vec3d(0, -rad, 0);
-		Vec3d cvelo = contact.vp(omg) - Vec3d(velo[0], 0, velo[2]); // Velocity at Contact position
-		receiveImpulse(cvelo * (1. - exp(-2. * dt)) / (1. + .1 * velo.len()), contact);
+		Vec3d cvelo = omg.vp(contact) + velo; // Velocity at Contact position
+		if(1e-10 < cvelo.slen()){
+			Mat3d impulseToTorque = skewSymmetric(contact);
+			Mat3d invMOI(1. / moi, 0, 0, 0, 1. / moi, 0, 0, 0, 1. / moi);
+			Mat3d deltaVelWorld = (impulseToTorque.transpose() * invMOI * impulseToTorque);
+			Mat3d deltaVelocity = deltaVelWorld;
+			deltaVelocity[0] += 1. / mass;
+			deltaVelocity[4] += 1. / mass;
+			deltaVelocity[8] += 1. / mass;
+			Mat3d impulseMatrix = deltaVelocity.inverse();
+			Mat3d testm = impulseMatrix * deltaVelocity;
+			Vec3d velKill(-cvelo[0], -cvelo[1], -cvelo[2]);
+			Vec3d impulseContact = impulseMatrix.vp(velKill);
+			double planarImpulse = sqrt(
+				impulseContact[0]*impulseContact[0] +
+				impulseContact[2]*impulseContact[2]
+				);
+			const double friction = Board::floor_friction;
+			if (planarImpulse > impulseContact[1] * friction){
+				// We need to use dynamic friction
+				impulseContact[0] /= planarImpulse;
+				impulseContact[2] /= planarImpulse;
+
+				double restingVelocity = deltaVelocity[4] +
+					deltaVelocity[3] * friction * impulseContact[0] +
+					deltaVelocity[5] * friction * impulseContact[2];
+				impulseContact[1] = -cvelo[1] / restingVelocity;
+				impulseContact[0] *= friction * impulseContact[1];
+				impulseContact[2] *= friction * impulseContact[1];
+			}
+			receiveImpulse(impulseContact,  contact);
+//			Vec3d domg = contact.vp(cvelo) * (1e-1 * floor_friction * dt / moi);
+//			omg += domg;
+//			aaccel += domg;
+		//	velo += cvelo * (floor_friction * dt);
+//			velo = (cvelo * exp(-dt * Board::floor_friction) + velo);
+			double svelo = velo.slen();
+			if(svelo < Board::constant_friction * dt * Board::constant_friction * dt)
+				velo = Vec3d(0,0,0);
+			else if(0. < svelo)
+				velo *= (1. - Board::constant_friction * dt / sqrt(svelo));
+/*			double f = exp(-Board::floor_friction * dt);
+			omg *= f;*/
+			double f = exp(-1. * dt);
+			omg[1] *= f;
+		}
+#if 0
+			receiveImpulse(cvelo * (1. - exp(-2. * dt)) / (1. + .1 * velo.len()), contact);
 /*		Vec3d domg = contact.vp(cvelo) * (1e-1 * floor_friction * dt / moi);
 		omg += domg;
 		aaccel += domg;
@@ -189,8 +249,12 @@ void Ball::anim(Board &b, double dt){
 		f = exp(-1. * dt);
 		omg[1] *= f;
 //		omg[1] *= 1. / (1. + floor_friction * dt / moi);
+#endif
 	}
-	omg *= 1. / (1. + constant_friction * dt / moi);
+
+	// Air friction decays angular velocity unconditionally
+	omg *= exp(-dt * Board::constant_friction);
+//	omg *= 1. / (1. + Board::constant_friction * dt / moi);
 	int i;
 	for(i = 0; i < numof(balls); i++) if(&balls[i] != this && intersects(balls[i])){
 		collide(balls[i]);

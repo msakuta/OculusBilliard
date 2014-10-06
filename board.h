@@ -11,6 +11,8 @@ public:
 	void anim(double dt);
 	void draw();
 	bool isStatic()const;
+	static const double floor_friction;
+	static const double constant_friction;
 } board;
 
 #endif

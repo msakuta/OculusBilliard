@@ -385,9 +385,9 @@ void mouse_func(int button, int state, int x, int y){
 		i = selected;
 		Vec3d lookdir = pl.rot.itrans(vec3_001);
 		power = SendMessage(hPowerUpDown, UDM_GETPOS32, 0, 0) / 100.;
-		board.balls[i].receiveImpulse(-10 * power * Vec3d(lookdir[0], false && board.balls[i].pos[1] <= 0. && lookdir[1] < 0. ? 0 : lookdir[1], lookdir[2]),
-			pl.rot.itrans(Vec3d(-deviation[0], -deviation[1], 0)));
-		board.cue.pos = board.balls[i].pos + pl.rot.itrans(Vec3d(-deviation[0], -deviation[1], -1)).norm().scale(1.1);
+		board.balls[i].receiveImpulse(-board.balls[i].getMass() * power * Vec3d(lookdir[0], false && board.balls[i].pos[1] <= 0. && lookdir[1] < 0. ? 0 : lookdir[1], lookdir[2]),
+			pl.rot.itrans(board.balls[i].rad * Vec3d(-deviation[0], -deviation[1], 0)));
+		board.cue.pos = board.balls[i].pos + pl.rot.itrans(Vec3d(-deviation[0], -deviation[1], -1)).norm().scale(board.balls[i].rad * 1.1);
 		/*for(i = 0; i < numof(board.balls); i++)*/
 		/*{
 			board.balls[i].velo[0] += drseq(&rs) * 500 - 250;

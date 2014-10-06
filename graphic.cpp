@@ -511,6 +511,6 @@ void Board::draw(){
 	for(i = 0; i < numof(balls); i++){
 		balls[i].draw(*this);
 	}
-	cue.draw(*this);
+//	cue.draw(*this);
 	glPopAttrib();
 }

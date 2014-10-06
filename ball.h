@@ -33,6 +33,7 @@ public:
 	double getEnergy()const{
 		return velo.slen() * mass + omg.slen() * moi;
 	}
+	double getMass()const{return mass;}
 
 	static const double defaultRadius;
 private:
