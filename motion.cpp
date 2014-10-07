@@ -390,6 +390,11 @@ void Board::anim(double dt){
 				("collide %lg\n", (dr + distAlongVelo * v).len());
 			}
 		}
+
+		// Reset the cue ball if it's potted
+		if(balls[0].pot)
+			balls[0] = Ball(Vec3d(0, 0, (x1 - x0) * .5), vec3_000, vec3_000);
+
 		for(i = 0; i < numof(balls); i++){
 			balls[i].anim(*this, dt);
 		}
