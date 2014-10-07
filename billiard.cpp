@@ -749,6 +749,8 @@ static LRESULT WINAPI CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 				ClipCursor(NULL);
 			}
 
+			winglend(hgl);
+
 			PostQuitMessage(0);
 			break;
 		default:
