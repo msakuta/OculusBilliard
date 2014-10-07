@@ -2,13 +2,13 @@
 #include "board.h"
 #include "ball.h"
 #include <math.h>
+#include "bitmap.h"
 
 extern "C"{
 #include <clib/c.h>
 #include <clib/gl/gldraw.h>
 #include <clib/suf/sufdraw.h>
 #include <clib/avec3.h>
-#include "bitmap.h"
 }
 
 #include "antiglut.h"
@@ -79,7 +79,7 @@ static void drawOctSphere(){
 }
 
 void Ball::draw(const Board &b)const{
-	static GLuint texlist[9] = {0};
+	static GLuint texlist[16] = {0};
 	static bool init = false;
 	int ind = (this - b.balls) % numof(texlist);
 	const double genfunc[2][4] = {
@@ -92,13 +92,14 @@ void Ball::draw(const Board &b)const{
 		int i;
 		for(i = 0; i < numof(texlist); i++){
 			char buf[64];
-			sprintf(buf, i ? "images/ball%d.bmp" : "images/cueball.bmp", i);
-			BITMAPINFO *bi = ReadBitmap(buf);
+			sprintf(buf, i ? "images/ball%d.png" : "images/cueball.png", i);
+			void (*pngFree)(BITMAPINFO*);
+			BITMAPINFO *bi = ReadPNG(buf, &pngFree);
 			if(!bi || !(texlist[i] = CacheSUFTex(buf, bi, 0)))
 				texlist[i] = last_active;
 			else
 				last_active = texlist[i];
-			LocalFree(bi);
+			pngFree(bi);
 		}
 	}
 	glPushAttrib(GL_LIGHTING_BIT | GL_POLYGON_BIT | GL_DEPTH_BUFFER_BIT | GL_TEXTURE_BIT);
