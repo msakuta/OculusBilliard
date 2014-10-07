@@ -13,6 +13,7 @@ public:
 	bool isStatic()const;
 	static const double floor_friction;
 	static const double constant_friction;
+	static const double holerad;
 } board;
 
 #endif

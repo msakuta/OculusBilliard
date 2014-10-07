@@ -323,7 +323,6 @@ void Board::draw(){
 	int x, y;
 	static GLuint boardmodel = 0;
 	static GLUtesselator *tobj = NULL;
-	const double holerad = Ball::defaultRadius * 2.;
 	const double border = 0.2;
 	const GLfloat aad[4] = {1, 1, 1, 1};
 	double (*cuts)[2] = CircleCuts(8);
@@ -409,7 +408,8 @@ void Board::draw(){
 
 	// Ball shadows
 	for(i = 0; i < numof(balls); i++){
-		balls[i].drawShadow(*this);
+		if(!balls[i].pot)
+			balls[i].drawShadow(*this);
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -509,7 +509,8 @@ void Board::draw(){
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	for(i = 0; i < numof(balls); i++){
-		balls[i].draw(*this);
+		if(!balls[i].pot)
+			balls[i].draw(*this);
 	}
 //	cue.draw(*this);
 	glPopAttrib();

@@ -19,14 +19,15 @@ public:
 	Vec3d aaccel;
 	Quatd rot;
 	double rad;
+	bool pot;
 #if USEODE
 	dBodyID body;
 	dGeomID geom;
 #endif
 	void init(const Vec3d pos);
-	Ball() : pos(vec3_000), velo(vec3_000), rot(quat_u), omg(vec3_000){ init(pos); }
-	Ball(const Vec3d &pos, const Vec3d &velo) : pos(pos), velo(velo), rot(quat_u), omg(vec3_000){ init(pos); }
-	Ball(const Vec3d &pos, const Vec3d &velo, const Vec3d &omg) : pos(pos), velo(velo), rot(quat_u), omg(omg){ init(pos); }
+	Ball() : pos(vec3_000), velo(vec3_000), rot(quat_u), omg(vec3_000), pot(false){ init(pos); }
+	Ball(const Vec3d &pos, const Vec3d &velo) : pos(pos), velo(velo), rot(quat_u), omg(vec3_000), pot(false){ init(pos); }
+	Ball(const Vec3d &pos, const Vec3d &velo, const Vec3d &omg) : pos(pos), velo(velo), rot(quat_u), omg(omg), pot(false){ init(pos); }
 	void anim(Board &b, double dt);
 	void draw(const Board &b)const, drawtra(const Board &b)const, drawShadow(const Board &b)const;
 	void receiveImpulse(const Vec3d &impulse, const Vec3d &position);

@@ -25,6 +25,7 @@ static bool world_init = false;
 
 
 const double Board::floor_friction = .3, Board::constant_friction = .05;
+const double Board::holerad = Ball::defaultRadius * 2.5;
 const double Ball::mass = 0.150; // 150 grams
 const double Ball::moi = 2. / 5. * mass * defaultRadius * defaultRadius; // moment of inertia
 static const double G = 9.8;
@@ -118,6 +119,8 @@ static Mat3d skewSymmetric(const Vec3d &v){
 }
 
 void Ball::anim(Board &b, double dt){
+	if(pot) // Don't simulate potted balls
+		return;
 	Ball (&balls)[numof(b.balls)] = b.balls;
 	aaccel = vec3_000;
 	pos += velo * dt;
@@ -250,16 +253,29 @@ void Ball::anim(Board &b, double dt){
 		omg[1] *= f;
 //		omg[1] *= 1. / (1. + floor_friction * dt / moi);
 #endif
+		for(int ix = -1; ix <= 1; ix += 2){
+			for(int iy = -1; iy <= 1; iy++){
+				Vec3d potpos = Vec3d((board.x0 * (1 - ix) + board.x1 * (1 + ix)) / 2., 0, (board.y0 * (1 - iy) + board.y1 * (1 + iy)) / 2.);
+				if((pos - potpos).slen() < Board::holerad * Board::holerad){
+					pot = true;
+					return;
+				}
+			}
+		}
 	}
 
 	// Air friction decays angular velocity unconditionally
 	omg *= exp(-dt * Board::constant_friction);
 //	omg *= 1. / (1. + Board::constant_friction * dt / moi);
 	int i;
-	for(i = 0; i < numof(balls); i++) if(&balls[i] != this && intersects(balls[i])){
-		collide(balls[i]);
+	for(i = 0; i < numof(balls); i++){
+		Ball *ball = &balls[i];
+		if(ball->pot) // Ignore potted balls
+			continue;
+		if(ball != this && intersects(balls[i]))
+			collide(balls[i]);
 	}
-	if(intersects(b.cue))
+	if(!pot && intersects(b.cue))
 		collide(b.cue);
 #endif
 }
@@ -365,6 +381,8 @@ void Board::anim(double dt){
 	for(t = 0; t < 10; t++){
 		for(i = 0; i < numof(balls); i++) for(j = i+1; j < numof(balls); j++){
 			Ball &b0 = balls[i], &b1 = balls[j];
+			if(b0.pot || b1.pot)
+				continue;
 			Vec3d dr = b0.pos - b1.pos, v = b0.velo - b1.velo;
 			double distAlongVelo = dr.sp(v);
 			double minDist = (dr + distAlongVelo * v).len();
