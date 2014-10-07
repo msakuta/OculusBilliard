@@ -239,28 +239,27 @@ static void  WINAPI vertex2(GLdouble *vd){
 	}
 }
 
+static GLuint ReadPNGTexture(const char *path){
+	void (*pngFree)(BITMAPINFO*);
+	BITMAPINFO *bi = ReadPNG(path, &pngFree);
+	GLuint ret = 0;
+	if(bi){
+		ret = CacheSUFTex(path, bi, 0);
+		pngFree(bi);
+	}
+	return ret;
+}
+
 void Board::draw(){
 	static GLuint texlist = 0, texfloor = 0, texwood = 0, texfield = 0, texlogo = 0;
-	if(!texlist){
-		BITMAPINFO *bi = ReadBitmap("images\\wall.bmp");
-		texlist = CacheSUFTex("wall.bmp", bi, 0);
-		LocalFree(bi);
-	}
-	if(!texfloor){
-		BITMAPINFO *bi = ReadBitmap("images\\floor.bmp");
-		texfloor = CacheSUFTex("floor.bmp", bi, 0);
-		LocalFree(bi);
-	}
-	if(!texwood){
-		BITMAPINFO *bi = ReadBitmap("images\\wood.bmp");
-		texwood = CacheSUFTex("wood.bmp", bi, 0);
-		LocalFree(bi);
-	}
-	if(!texfield){
-		BITMAPINFO *bi = ReadBitmap("images\\field.bmp");
-		texfield = CacheSUFTex("field.bmp", bi, 0);
-		LocalFree(bi);
-	}
+	if(!texlist)
+		texlist = ReadPNGTexture("images\\wall.png");
+	if(!texfloor)
+		texfloor = ReadPNGTexture("images\\floor.png");
+	if(!texwood)
+		texwood = ReadPNGTexture("images\\wood.png");
+	if(!texfield)
+		texfield = ReadPNGTexture("images\\field.png");
 	glPushAttrib(GL_LIGHTING_BIT | GL_POLYGON_BIT | GL_DEPTH_BUFFER_BIT | GL_TEXTURE_BIT);
 //	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	lightOn();

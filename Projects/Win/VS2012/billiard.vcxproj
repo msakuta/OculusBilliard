@@ -100,7 +100,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\billiard.cpp" />
-    <ClCompile Include="..\..\..\bitmap.c" />
     <ClCompile Include="..\..\..\graphic.cpp" />
     <ClCompile Include="..\..\..\motion.cpp" />
     <ClCompile Include="..\..\..\png.cpp" />
