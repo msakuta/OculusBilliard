@@ -105,21 +105,7 @@ void draw_text(const wchar_t *s){
 				2, //DWORD  biClrImportant; 
 			}, {0,0,0,0,255,255,255,0}};
 			hbm = CreateDIBSection(hcdc, (BITMAPINFO*)&bi, DIB_RGB_COLORS, (void**)&chbuf, NULL, 0);
-/*			int i;
-			wchar_t buf[4] = L"ぁ";
-			SelectObject(hcdc, hbm);
-			SelectObject(hcdc, GetStockObject(SYSTEM_FONT));
-			SetBkColor(hcdc, RGB(255,255,255));
-			SetTextColor(hcdc, RGB(0,0,0));
-			for(i = 0; i < 100; i++){
-				TextOutW(hcdc, 0, 0, buf, 1);
-				glNewList(0x3041+i, GL_COMPILE);
-				glBitmap(32, 32, 0, 0, 16, 0, chbuf);
-				glEndList();
-				(*buf)++;
-			}
-			DeleteObject(hbm);
-			DeleteDC(hcdc);*/
+
 			ReleaseDC(GetDesktopWindow(), hwdc);
 		}
 	}
@@ -238,19 +224,6 @@ void draw_func(Viewer &vw, double dt){
 	gldprintf("c: %lg", power);
 	glRasterPos2d(0, -1 + 2 * 16. / vw.vp.h);
 	gldprintf("static: %d", (int)board.isStatic());
-
-	// display a string: 
-	// indicate start of glyph display lists 
-//	for(i = 0; i < 50; i++)
-//		glCallList(0x3041+i);
-//	glListBase (1000); 
-	// now draw the characters in a string 
-//	glCallLists (24, GL_UNSIGNED_SHORT, L"あこんにちは甲乙丙");
-//	draw_text(L"Hello, world");
-/*	for(i = 0; i < 1; i++){
-		glRasterPos2d(-1, -1 + (i + 5) * 32. / vw.vp.h);
-		gldDrawTextW(L"aaaようやく日本語を表示することができました");
-	}*/
 
 	glMatrixMode (GL_PROJECTION);    /* prepare for and then */ 
 	glPopMatrix();
@@ -409,14 +382,6 @@ void mouse_func(int button, int state, int x, int y){
 		board.balls[i].receiveImpulse(board.balls[i].getMass() * power * lookdir,
 			pl.rot.itrans(board.balls[i].rad * Vec3d(-deviation[0], -deviation[1], 0)));
 		board.cue.pos = board.balls[i].pos + pl.rot.itrans(Vec3d(-deviation[0], -deviation[1], -1)).norm().scale(board.balls[i].rad * 1.1);
-		/*for(i = 0; i < numof(board.balls); i++)*/
-		/*{
-			board.balls[i].velo[0] += drseq(&rs) * 500 - 250;
-			board.balls[i].velo[2] += drseq(&rs) * 500 - 250;
-			board.balls[i].omg[0] += (drseq(&rs) * 500 - 250) * M_PI;
-			board.balls[i].omg[1] += (drseq(&rs) * 500 - 250) * M_PI;
-			board.balls[i].omg[2] += (drseq(&rs) * 500 - 250) * M_PI;
-		}*/
 		charging = false;
 	}
 	else if(state == GLUT_DOWN && button == GLUT_LEFT_BUTTON){
@@ -425,83 +390,9 @@ void mouse_func(int button, int state, int x, int y){
 		power = 1.;
 	}
 
-/*	if(cmdwnd){
-		CmdMouseInput(button, state, x, y);
-		return;
-	}*/
-
-/*	if(!mouse_captured){
-		if(glwdrag){
-			if(state == GLUT_UP)
-				glwdrag = NULL;
-			return;
-		}
-		else{
-			int killfocus = 1, ret = 0;
-			ret = glwMouseFunc(button, state, x, y);
-			if(!ret){
-				if(!glwfocus && button == GLUT_LEFT_BUTTON && state == GLUT_UP){
-					avec3_t centerray, centerray0;
-					aquat_t qrot, qirot;
-					centerray0[0] = (s_mousedragx + s_mousex) / 2. / gvp.w - .5;
-					centerray0[1] = (s_mousedragy + s_mousey) / 2. / gvp.h - .5;
-					centerray0[2] = -1.;
-					VECSCALEIN(centerray0, -1.);
-					QUATCNJ(qrot, pl.rot);
-					quatrot(centerray, qrot, centerray0);
-					quatdirection(qrot, centerray);
-					QUATCNJ(qirot, qrot);
-					select_box(fabs(s_mousedragx - s_mousex), fabs(s_mousedragx - s_mousex), qirot);
-					s_mousedragx = s_mousex;
-					s_mousedragy = s_mousey;
-				}
-				glwfocus = NULL;
-			}
-			if(ret)
-				return;
-		}
-	}
-
-	if(0 && pl.control){
-		if(state == GLUT_UP && button == GLUT_WHEEL_UP)
-			s_mouse |= PL_MWU;
-		if(state == GLUT_UP && button == GLUT_WHEEL_DOWN)
-			s_mouse |= PL_MWD;
-	}
-	else{
-		extern double g_viewdist;
-		if(state == GLUT_UP && button == GLUT_WHEEL_UP)
-			g_viewdist *= 1.2;
-		if(state == GLUT_UP && button == GLUT_WHEEL_DOWN)
-			g_viewdist /= 1.2;
-	}
-
-	if(!state){
-		s_mouse |= !state << (button / 2);
-	}
-	else
-		s_mouse &= ~(!!state << (button / 2));*/
-/*	s_mousec |= 1 << (button / 2);*/
-/*
-	s_mousex = x;
-	s_mousey = y;
-
-	{
-		int i = (y - 40) / 10;
-		if(button == GLUT_LEFT_BUTTON && state == GLUT_UP && gvp.w - 160 <= x && 0 <= i && i < OV_COUNT){
-			if(g_counts[i] == 1){
-				pl.chase = pl.selected = g_tanks[i];
-			}
-			else
-				pl.selected = NULL;
-			current_vft = g_vfts[i];
-		}
-	}
-*/
 #if USEWIN && defined _WIN32
-	if(/*!cmdwnd &&*/ (!pl.control || !mouse_captured) && state == GLUT_UP && button == GLUT_RIGHT_BUTTON){
+	if((!pl.control || !mouse_captured) && state == GLUT_UP && button == GLUT_RIGHT_BUTTON){
 		mouse_captured = !mouse_captured;
-/*		printf("right up %d\n", mouse_captured);*/
 		if(mouse_captured){
 			int c;
 			HWND hwd;
@@ -515,11 +406,8 @@ void mouse_func(int button, int state, int x, int y){
 			c = ShowCursor(FALSE);
 			while(0 <= c)
 				c = ShowCursor(FALSE);
-//			glwfocus = NULL;
 		}
 		else{
-//			s_mousedragx = s_mousex;
-//			s_mousedragy = s_mousey;
 			while(ShowCursor(TRUE) < 0);
 		}
 	}
@@ -659,15 +547,9 @@ static LRESULT WINAPI CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 		case WM_TIMER:
 			if(hgl){
 				HDC hdc;
-//				HGLRC hgl;
 				hdc = GetDC(hWnd);
-//				hgl = winglstart(hdc);
 				display_func();
 				wglSwapLayerBuffers(hdc, WGL_SWAP_MAIN_PLANE);
-/*				SetBkMode(hdc, TRANSPARENT);
-				SetTextColor(hdc, RGB(255,255,255));
-				TextOut(hdc, 0, 0, "あいうえおあお", 7*2);*/
-//				winglend(hgl);
 				ReleaseDC(hWnd, hdc);
 			}
 			break;
@@ -784,10 +666,6 @@ static LRESULT WINAPI CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, L
 HWND hWndApp;
 #endif
 
-/*
- *	main関数
- *		glutを使ってウインドウを作るなどの処理をする
- */
 int main(int argc, char *argv[])
 {
 	board.init();
@@ -839,8 +717,6 @@ int main(int argc, char *argv[])
 		}
 	}
 #else
-/*	printf("%lg %lg %lg\n", fmod(-8., 5.), -8. / 5. - (int)(-8. / 5.), -8. / 5. - (floor)(-8. / 5.));*/
-/*	display_func();*/
 	glutMainLoop();
 #endif
 
