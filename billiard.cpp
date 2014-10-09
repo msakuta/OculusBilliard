@@ -150,9 +150,6 @@ void draw_text(const wchar_t *s){
 
 
 void draw_func(Viewer &vw, double dt){
-	static double vdist = 1.;
-	static Vec3d vvv = vec3_000;
-	static Quatd vvr = quat_u;
 	glClearDepth(1.);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -163,16 +160,17 @@ void draw_func(Viewer &vw, double dt){
 		gldTranslate3dv(vw.pos);
 	}
 	else{
-		avec3_t mov;
-		Vec3d focusvec = Vec3d(0, -view_dist * .035, -view_dist);
-		mat4dvp3(mov, vw.irot, focusvec);
+		// Smoothly interpolate view distance
+		static double smoothDist = 1.;
+		double f = exp(-dt * 10.);
+		smoothDist = smoothDist * f + view_dist * (1. - f);
+		Vec3d focusvec = Vec3d(0, -smoothDist * .035, -smoothDist);
+		Vec3d mov = vw.irot.dvp3(focusvec);
 		pl.pos = (-board.balls[selected].pos + mov);
 		pl.velo = vec3_000;
-		vvv += -pl.rot.itrans(focusvec) - -vvr.itrans(focusvec) + (pl.pos - vvv) * (1. - exp(-dt * 10.));
 		glMultMatrixd(vw.rot);
-		gldTranslate3dv(vvv);
+		gldTranslate3dv(pl.pos);
 	}
-	vvr = pl.rot;
 	glPushAttrib(GL_POLYGON_BIT);
 	glPolygonMode(GL_FRONT_AND_BACK, g_wireframe ? GL_LINE : GL_FLAT);
 	board.draw();
@@ -360,8 +358,8 @@ void display_func(void){
 		glMatrixMode (GL_MODELVIEW);  /* back to modelview matrix */
 /*		glDepthRange(.5,100);*/
 	}
-	quat2mat(&viewer.rot, pl.rot);
-	quat2imat(&viewer.irot, pl.rot);
+	viewer.rot = pl.rot.tomat4();
+	viewer.irot = pl.rot.cnj().tomat4();
 	draw_func(viewer, dt);
 }
 

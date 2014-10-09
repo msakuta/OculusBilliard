@@ -2,11 +2,11 @@
 #define VIEWER_H
 extern "C"{
 #include <clib/c.h>
-#include <clib/amat4.h>
 #include <clib/avec3.h>
 #include <clib/gl/cull.h>
 }
 #include <cpplib/vec3.h>
+#include <cpplib/mat4.h>
 #include <cstring>
 #ifdef _WIN32
 #include <windows.h>
@@ -31,7 +31,7 @@ public:
 		std::memset(this, 0, sizeof *this);
 		fov = 1.; // Field of View
 	}
-	amat4_t rot, irot, relrot, relirot;
+	Mat4d rot, irot, relrot, relirot;
 	Vec3d pos;
 	avec3_t pyr, velo;
 	double velolen;
