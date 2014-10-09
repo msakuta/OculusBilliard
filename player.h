@@ -39,6 +39,8 @@ public:
 	double gametime;
 	double velolen; /* trivial; performance keeper */
 	double height; /* trivial; indicates air pressure surrounding the player */
+
+	void rotateLook(double dx, double dy);
 };
 
 

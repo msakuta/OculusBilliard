@@ -12,6 +12,7 @@ extern "C"{
 #include <clib/rseq.h>
 #include <clib/timemeas.h>
 #include <clib/c.h>
+#include <clib/cfloat.h>
 #include <clib/aquat.h>
 #include <clib/aquatrot.h>
 #include <clib/gl/gldraw.h>
@@ -257,6 +258,32 @@ void draw_func(Viewer &vw, double dt){
 	glPopMatrix();
 }
 
+/// The 'lathe' type method to update rotation of the viewing orientation.
+/// We could have only euler angles, pitch, yaw and roll, in order to achieve this
+/// type of response to mouse movements, but we had quaternion as the rotation
+/// representation, so we have to settle for it.
+void Player::rotateLook(double dx, double dy){
+	const double speed = .001 / 2.;
+	const double one_minus_epsilon = .999;
+
+	Quatd rot = this->rot;
+
+	// Fully calculate pitch, yaw and roll from quaternion.
+	// This calculation is costly, but worth doing everytime mouse moves, for majority of screen is affected.
+	Vec3d view = rot.itrans(vec3_001);
+	double phi = -atan2(view[0], view[2]);
+	double theta = atan2(view[1], sqrt(view[2] * view[2] + view[0] * view[0]));
+	Quatd rot1 = Quatd::rotation(theta, 1, 0, 0).rotate(phi, 0, 1, 0);
+	Quatd rot2 = rot * rot1.cnj();
+	Vec3d right = rot2.itrans(vec3_100);
+
+	// Add in instructed movement here.
+	phi += -dx * speed;
+	theta = rangein(theta + -dy * speed, -M_PI / 2. * one_minus_epsilon, M_PI / 2. * one_minus_epsilon);
+	double roll = -atan2(right[1], right[0]);
+	this->rot = Quatd::rotation(roll, 0, 0, 1).rotate(theta, 1, 0, 0).rotate(phi, 0, 1, 0);
+}
+
 static POINT mouse_pos = {0, 0};
 
 void display_func(void){
@@ -303,18 +330,7 @@ void display_func(void){
 					}
 				}
 				else{
-					int sign = freelook * 2 - 1;
-					aquat_t q;
-	//				quatirot(q, pl.rot, vec3_010);
-					VECCPY(q, vec3_010);
-					VECSCALEIN(q, sign * (p.x - mouse_pos.x) * .001 / 2.);
-					q[3] = 0.;
-					quatrotquat(pl.rot, q, pl.rot);
-	//				quatirot(q, pl.rot, vec3_100);
-					VECCPY(q, vec3_100);
-					VECSCALEIN(q, sign * (p.y - mouse_pos.y) * .001 / 2.);
-					q[3] = 0.;
-					quatrotquat(pl.rot, q, pl.rot);
+					pl.rotateLook(p.x - mouse_pos.x, p.y - mouse_pos.y);
 				}
 				SetCursorPos(mouse_pos.x, mouse_pos.y);
 //				mouse_pos = p;
