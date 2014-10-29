@@ -53,9 +53,10 @@ void Board::init(){
 	int i, ix = 0, iy = 0;
 	for(i = 0; i < numof(balls); i++){
 		if(i == 0)
-			balls[i] = Ball(Vector3d(0, 0, 20), Vector3d(0,0,0), Vector3d(0,0,0));
+			balls[i] = Ball(Vector3d(0, 0, (x1 - x0) * .5), Vector3d(0,0,0), Vector3d(0,0,0));
 		else{
-			double x = 2. * ix - iy, z = -2. * iy * sqrt(3.) / 2.;
+			double x = Ball::defaultRadius * (2. * ix - iy);
+			double z = Ball::defaultRadius * (-2. * iy * sqrt(3.) / 2.);
 			Vector3d pos = Vector3d(x, 0, z);
 	//		x = drseq(&rs) * 50 - 25, z = drseq(&rs) * 50 - 25;
 			Vector3d velo = Vector3d(0, 0, 0);

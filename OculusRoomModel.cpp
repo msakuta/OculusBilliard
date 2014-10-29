@@ -147,17 +147,17 @@ static const float rim = 2 * Ball::defaultRadius;
 static const Slab TableSlabs[] =
 {
     // Table
-    {  -longEnd,          0.0f,    shortEnd,   longEnd,          height,       -shortEnd,      Color(75,128,128) }, // Table face
+    {  -shortEnd,          0.0f,    longEnd,   shortEnd,          height,       -longEnd,      Color(75,128,128) }, // Table face
 };
 
 static const SlabModel Table = {sizeof(TableSlabs)/sizeof(Slab), TableSlabs, Tex_Table};
 
 static const Slab CushionSlabs[] =
 {
-    {  -longEnd - outset, height,  shortEnd,  -longEnd + inset,  height + rim, -shortEnd,      Color(128,128,88) }, // Left edge
-    {   longEnd - inset,  height,  shortEnd,   longEnd + outset, height + rim, -shortEnd, Color(128,128,88) }, // Right edge
-    {  -longEnd, height,  shortEnd - inset,   longEnd,         height + rim,  shortEnd + outset, Color(128,128,88) }, // Front edge
-    {  -longEnd, height, -shortEnd - outset,  longEnd,         height + rim, -shortEnd + inset, Color(128,128,88) }, // Back edge
+    {  -shortEnd - outset, height,  longEnd,  -shortEnd + inset,  height + rim, -longEnd,      Color(128,128,88) }, // Left edge
+    {   shortEnd - inset,  height,  longEnd,   shortEnd + outset, height + rim, -longEnd, Color(128,128,88) }, // Right edge
+    {  -shortEnd, height,  longEnd - inset,   shortEnd,         height + rim,  longEnd + outset, Color(128,128,88) }, // Front edge
+    {  -shortEnd, height, -longEnd - outset,  shortEnd,         height + rim, -longEnd + inset, Color(128,128,88) }, // Back edge
 };
 
 static const SlabModel Cushions = {sizeof(CushionSlabs)/sizeof(Slab), CushionSlabs};
@@ -230,11 +230,13 @@ FillCollection::FillCollection(RenderDevice* render)
     }
 
 	LoadTexture("images/field.png", builtinTextures[Tex_Table], render);
-	LoadTexture("images/cueball.png", builtinTextures[Tex_CueBall], render);
-	for(int c = 0; c < 15; c++){
+	for(int c = 0; c < sizeof(board.balls) / sizeof(*board.balls); c++){
 		std::stringstream sbuf;
-		sbuf << "images/ball" << (c + 1) << ".png";
-		LoadTexture(sbuf.rdbuf()->str().c_str(), builtinTextures[Tex_Ball1 + c], render);
+		if(c == 0)
+			sbuf << "images/cueball.png";
+		else
+			sbuf << "images/ball" << c << ".png";
+		LoadTexture(sbuf.rdbuf()->str().c_str(), builtinTextures[Tex_CueBall + c], render);
 	}
 
 	LitSolid = *new ShaderFill(*render->CreateShaderSet());
@@ -377,26 +379,15 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
 	Container *boardContainer = new Container;
 	boardContainer->SetPosition(Vector3f(0, height + ballRadius, 0));
 
-	Model *model = new Model(Prim_Triangles);
-	board.cue.model = model;
-	board.cue.rad = ballRadius;
-//	ball->SetPosition();
-	model->AddSphere(ballRadius, Model::LongLat);
-	model->Fill = fills.LitTextures[Tex_CueBall];
-	boardContainer->Add(Ptr<Model>(*model));
+	board.init();
 
-	int ballNum = 0;
-	for(int iz = 0; iz < 5; iz++){
-		for(int ix = 0; ix <= iz; ix++){
-			Model *model = new Model(Prim_Triangles);
-			Ball &ball = board.balls[ballNum];
-			ball.model = model;
-			ball.rad = ballRadius;
-			ball.pos = Vector3d(-ix * ballRadius * sqrt(3.f) + longEnd * 0.5, height + ballRadius, (iz - 2) * ballDiameter - ix * ballRadius);
-			model->AddSphere(ballRadius, Model::MirrorProjection, -1., -1., 1., 1.);
-			model->Fill = fills.LitTextures[int(Tex_Ball1) + ballNum++];
-			boardContainer->Add(Ptr<Model>(*model));
-		}
+	for(int i = 0; i < sizeof(board.balls) / sizeof(*board.balls); i++){
+		Ball &ball = board.balls[i];
+		Model *model = new Model(Prim_Triangles);
+		ball.model = model;
+		model->AddSphere(ballRadius, Model::MirrorProjection, -1., -1., 1., 1.);
+		model->Fill = fills.LitTextures[int(Tex_CueBall) + i];
+		boardContainer->Add(Ptr<Model>(*model));
 	}
 
 	scene->World.Add(boardContainer);
