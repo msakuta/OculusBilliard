@@ -71,7 +71,7 @@ https://developer.oculusvr.com/?action=dl
 Running Environment
 -------------------
 
-It's only tested on Windows 7 with Oculus Rift DK1.
+It's only tested on Windows 7 with Oculus Rift DK1 and DK2.
 I have neither tested Linux or Mac OS.
 
 As for DK2, it's not delivered to me yet.
