@@ -40,6 +40,8 @@ public:
 	double getEnergy()const{
 		return velo.LengthSq() * mass + omg.LengthSq() * moi;
 	}
+
+	static const double defaultRadius;
 private:
 	void collide(Ball &o);
 	Vector3d trails[128];

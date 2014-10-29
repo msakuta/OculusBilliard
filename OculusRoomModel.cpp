@@ -137,12 +137,12 @@ Slab FixtureSlabs[] =
 
 SlabModel Fixtures = {sizeof(FixtureSlabs)/sizeof(Slab), FixtureSlabs};
 
-static const float longEnd = 2.7f;
+static const float longEnd = 3.7 / 2.;
 static const float shortEnd = longEnd / 2.f;
 static const float inset = 0.1f;
 static const float outset = 0.1f;
 static const float height = 0.75f;
-static const float rim = 0.1f;
+static const float rim = 2 * Ball::defaultRadius;
 
 static const Slab TableSlabs[] =
 {
@@ -369,7 +369,7 @@ void PopulateRoomScene(Scene* scene, RenderDevice* render)
     scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Table,  fills)));
 	scene->World.Add(Ptr<Model>(*CreateModel(Vector3f(0,0,0),  &Cushions,  fills)));
 
-	static const float ballRadius = 0.060f;
+	static const float ballRadius = Ball::defaultRadius;
 	static const float ballDiameter = ballRadius * 2.f;
 
 	board.init();

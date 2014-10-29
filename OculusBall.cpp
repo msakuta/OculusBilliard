@@ -4,11 +4,12 @@
 
 const double floor_friction = .3, constant_friction = 1*.2;
 
+const double Ball::defaultRadius = 0.030; // Meters
 
 void Ball::init(const Vector3d &pos){
 //	if(!world_init)
 //		return;
-	rad = 1.;
+	rad = defaultRadius;
 	trail0 = trail1 = 0;
 #if USEODE
 	dMass m;
