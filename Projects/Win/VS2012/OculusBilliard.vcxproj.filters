@@ -11,20 +11,28 @@
     <ClCompile Include="../../../Win32_OculusRoomTiny_Util.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\OculusBall.cpp" />
-    <ClCompile Include="..\..\..\OculusBoard.cpp" />
+    <ClCompile Include="..\..\..\motion.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Util">
       <UniqueIdentifier>{0750679b-ec1e-44c8-a78b-05d9e58a3588}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{16a97817-72b4-4e66-a892-da7d4b7c9701}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../../../RenderTiny_D3D11_Device.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ball.h" />
-    <ClInclude Include="..\..\..\OculusBall.h" />
-    <ClInclude Include="..\..\..\OculusBoard.h" />
+    <ClInclude Include="..\..\..\ball.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\OVRAdapt.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\board.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

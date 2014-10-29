@@ -13,6 +13,9 @@ extern "C"{
 
 #include <cpplib/mat3.h>
 
+#ifdef OCULUSBILLIARD
+#include "OVRAdapt.h"
+#endif
 
 #if USEODE
 extern dWorldID world;
@@ -52,8 +55,9 @@ static void world_initialize(){
 }
 
 void Ball::init(const Vec3d pos){
-	if(!world_init)
-		return;
+#ifdef OCULUSBILLIARD
+	model = NULL;
+#endif
 	rad = defaultRadius;
 	trail0 = trail1 = 0;
 #if USEODE
@@ -126,7 +130,7 @@ void Ball::anim(Board &b, double dt){
 	pos += velo * dt;
 /*	amat4_t mat;
 	amat3_t omgt, nmat3;*/
-	Quatd qomg, q, qbackup;
+	cpplib::Quatd qomg, q, qbackup;
 
 	if(trail1 == trail0 || .2 * .2 < (pos - trails[trail1]).slen()){
 		trail1 = (trail1+1) % numof(trails);
@@ -145,7 +149,7 @@ void Ball::anim(Board &b, double dt){
 #else
 	// rotation
 	if(1e-10 < omg.slen()){
-		rot = Quatd::rotation(omg.len() * dt, omg.norm()) * rot;
+		rot = cpplib::Quatd::rotation(omg.len() * dt, omg.norm()) * rot;
 		rot.normin();
 	}
 
@@ -278,6 +282,15 @@ void Ball::anim(Board &b, double dt){
 	if(!pot && intersects(b.cue))
 		collide(b.cue);
 #endif
+
+#ifdef OCULUSBILLIARD
+	if(model){
+		Vector3f f(pos[0], pos[1], pos[2]);
+		model->SetPosition(f);
+		OVR::Quatf q(rot[0], rot[1], rot[2], rot[3]);
+		model->SetOrientation(q);
+	}
+#endif
 }
 
 void Board::init(){
@@ -286,8 +299,13 @@ void Board::init(){
 	init_rseq(&rs, 342925);
 	int i, ix = 0, iy = 0;
 	for(i = 0; i < numof(balls); i++){
-		if(i == 0)
-			balls[i] = Ball(Vec3d(0, 0, (x1 - x0) * .5), vec3_000, vec3_000);
+		Ball &ball = balls[i];
+		if(i == 0){
+			ball.pos = Vec3d(0, 0, (x1 - x0) * .5);
+			ball.velo = vec3_000;
+			ball.omg = vec3_000;
+			ball.rot = cpplib::Quatd(0,0,0,1);
+		}
 		else{
 			double x = Ball::defaultRadius * (2. * ix - iy);
 			double z = Ball::defaultRadius * (-2. * iy * sqrt(3.) / 2.);
@@ -296,7 +314,10 @@ void Board::init(){
 			Vec3d velo = Vec3d(0, 0, 0);
 			x = (drseq(&rs) * 2 - 1) * M_PI, z = (drseq(&rs) * 2 - 1) * M_PI;
 			Vec3d omg = vec3_000/*Vec3d(x, z, (drseq(&rs) * 2 - 1) * M_PI)*/;
-			balls[i] = Ball(pos, velo, omg);
+			ball.pos = pos;
+			ball.velo = velo;
+			ball.omg = omg;
+			ball.rot = cpplib::Quatd(0,0,0,1);
 			if(iy <= ix){
 				iy = iy + 1;
 				ix = 0;
@@ -364,22 +385,31 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 
 #define EPSILON 1e-10
 
-void Board::anim(double dt){
-	int i, j, t;
+void Board::anim(double dt
+#ifdef OCULUSBILLIARD
+		, const Vector3f &headPos
+#endif
+)
+{
+#ifdef OCULUSBILLIARD
+	for(int i = 0; i < 3; i++)
+		this->headPos[i] = headPos[i];
+#endif
+
 #if USEODE
 	double simstep = 0.001; // 1ms simulation steps
-	for(i = 0; i < 10; i++){
+	for(int i = 0; i < 10; i++){
 	    dSpaceCollide (space,0,&nearCallback);
 	    dWorldQuickStep (world, dt / 10.);
 		dJointGroupEmpty (contactgroup);
 	}
-	for(i = 0; i < numof(balls); i++){
+	for(int i = 0; i < numof(balls); i++){
 		balls[i].anim(*this, dt);
 	}
 #else
 	dt /= 10.;
-	for(t = 0; t < 10; t++){
-		for(i = 0; i < numof(balls); i++) for(j = i+1; j < numof(balls); j++){
+	for(int t = 0; t < 10; t++){
+		for(int i = 0; i < numof(balls); i++) for(int j = i+1; j < numof(balls); j++){
 			Ball &b0 = balls[i], &b1 = balls[j];
 			if(b0.pot || b1.pot)
 				continue;
@@ -392,10 +422,16 @@ void Board::anim(double dt){
 		}
 
 		// Reset the cue ball if it's potted
-		if(balls[0].pot)
-			balls[0] = Ball(Vec3d(0, 0, (x1 - x0) * .5), vec3_000, vec3_000);
+		// but not totally erase the model
+		if(balls[0].pot){
+			balls[0].pos = Vec3d(0, 0, (x1 - x0) * .5);
+			balls[0].velo = vec3_000;
+			balls[0].omg = vec3_000;
+			balls[0].rot = cpplib::Quatd(0,0,0,1);
+			balls[0].pot = false;
+		}
 
-		for(i = 0; i < numof(balls); i++){
+		for(int i = 0; i < numof(balls); i++){
 			balls[i].anim(*this, dt);
 		}
 	}
@@ -407,4 +443,10 @@ bool Board::isStatic()const{
 	for(i = 0; i < numof(balls); i++) if(balls[i].velo.slen() < EPSILON && balls[i].omg.slen() < EPSILON);
 	else return false;
 	return true;
+}
+
+void Board::shoot(){
+#ifdef OCULUSBILLIARD
+	balls[0].velo += (balls[0].pos - ovrvc(headPos)).norm() * 5.;
+#endif
 }

@@ -24,7 +24,7 @@ limitations under the License.
 
 #include "libpng/png.h"
 
-#include "OculusBoard.h"
+#include "board.h"
 
 #include <sstream>
 #include <vector>
@@ -358,7 +358,7 @@ Model* CreateModel(Vector3f pos, const SlabModel* sm, const FillCollection& fill
     return m;
 }
 
-Board board(-longEnd + inset, -shortEnd + inset, longEnd - inset, shortEnd - inset);
+Board board(-shortEnd + inset, -longEnd + inset, shortEnd - inset, longEnd - inset);
 
 // Adds sample models and lights to the argument scene.
 void PopulateRoomScene(Scene* scene, RenderDevice* render)

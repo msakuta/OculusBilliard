@@ -43,7 +43,7 @@ void Util_ReleaseWindowAndGraphics (RenderDevice* pRender);
 bool Util_RespondToControls        (float & EyeYaw, Vector3f & EyePos, Quatf PoseOrientation);
 void PopulateRoomScene             (Scene* scene, RenderDevice* render);
 
-#include "OculusBoard.h"
+#include "board.h"
 
 #ifndef _WIN32
 #include <time.h>

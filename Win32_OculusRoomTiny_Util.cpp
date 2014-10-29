@@ -22,7 +22,7 @@ limitations under the License.
 #include "RenderTiny_D3D11_Device.h"
 #include "OVR_CAPI.h"
 
-#include "OculusBoard.h"
+#include "board.h"
 
 // Win32 System Variables
 HWND                hWnd = NULL;
@@ -75,6 +75,7 @@ void OnKey(unsigned vk, bool down)
     case 'D':       MoveRight   = down ? (MoveRight   | 1) : (MoveRight   & ~1);  break;
 
 	case 'G':       board.shoot(); break;
+	case 'B':       board.init(); break;
 
     case VK_UP:     MoveForward = down ? (MoveForward | 2) : (MoveForward & ~2);  break;
     case VK_DOWN:   MoveBack    = down ? (MoveBack    | 2) : (MoveBack    & ~2);  break;
@@ -93,7 +94,7 @@ void OnMouseMove(int x)
      AdditionalYawFromMouse -= (Sensitivity * x)/ 360.0f;
 }
 
-bool Util_RespondToControls(float & EyeYaw, Vector3f & EyePos, Quatf PoseOrientation)
+bool Util_RespondToControls(float & EyeYaw, Vector3f & EyePos, OVR::Quatf PoseOrientation)
 {
 	#if 0//Optional debug output
 	char debugString[1000];

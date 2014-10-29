@@ -3,6 +3,15 @@
 #include <cpplib/vec3.h>
 #include <cpplib/quat.h>
 
+#ifdef OCULUSBILLIARD
+#include "Kernel/OVR_Math.h"
+#include "Kernel/OVR_Array.h"
+#include "Kernel/OVR_String.h"
+#include "Kernel/OVR_Color.h"
+
+#include "RenderTiny_D3D11_Device.h"
+#endif
+
 #define USEODE 0
 
 #if USEODE
@@ -17,9 +26,12 @@ public:
 	Vec3d velo;
 	Vec3d omg;
 	Vec3d aaccel;
-	Quatd rot;
+	cpplib::Quatd rot;
 	double rad;
 	bool pot;
+#ifdef OCULUSBILLIARD
+	Model *model;
+#endif
 #if USEODE
 	dBodyID body;
 	dGeomID geom;
