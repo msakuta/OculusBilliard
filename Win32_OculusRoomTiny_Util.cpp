@@ -140,6 +140,12 @@ bool Util_RespondToControls(float & EyeYaw, Vector3f & EyePos, OVR::Quatf PoseOr
 		EyeYaw -= (input.analog[2] < 0 ? -absmov : absmov) * 2e-2; // Head rotation
 	}
 
+	if(input.joyChange & input.joyState & Joystick::JOY_FIRE1){
+		// Debug output
+//		OutputDebugStringA("Joy change and state\r\n");
+		board.shoot();
+	}
+
 	Vector3f    orientationVector = yawRotate.Transform(localMoveVector);
 
 	const float deltaTime = 1.0f/60.0f;

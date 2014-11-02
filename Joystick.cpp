@@ -66,6 +66,12 @@ void Joystick::ReleaseJoystick()
 
 void Joystick::CheckJoystick(input_t &input)
 {
+	// Initialize the returned buffer for the cases of errors or absence of a joystick.
+	for(int i = 0; i < 4; i++)
+		input.analog[i] = 0;
+	input.joyState = 0;
+	input.joyChange = 0;
+
 	if (m_uiJoystickID == JOYSTICKID1 || m_uiJoystickID == JOYSTICKID2){
 		// Reserve old press state for taking differences
 		int oldpress = input.press;
@@ -121,6 +127,13 @@ void Joystick::CheckJoystick(input_t &input)
 			if(jiInfo.dwButtons & JOY_BUTTON7)
 				jsJoystickState |= JOY_FIRE7;
 
+			// Debug output
+//			char buf[256];
+//			sprintf(buf, "joy %d %d\r\n", jsJoystickState, m_joyState);
+//			OutputDebugStringA(buf);
+
+			input.joyState = jsJoystickState;
+			input.joyChange = jsJoystickState ^ m_joyState;
 			m_joyState = jsJoystickState;
 		}
 	}

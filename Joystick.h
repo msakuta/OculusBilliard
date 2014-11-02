@@ -6,6 +6,8 @@
 typedef struct input{
 	unsigned press; /* bitfield for buttons being pressed */
 	unsigned change; /* and changing state */
+	unsigned joyState;
+	unsigned joyChange;
 	int start; /* if the controlling is beggining */
 	int end; /* if the controlling is terminating */
 	double analog[4]; /* analog inputs, first and second elements are probably mouse movements. */
