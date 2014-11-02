@@ -132,6 +132,14 @@ bool Util_RespondToControls(float & EyeYaw, Vector3f & EyePos, OVR::Quatf PoseOr
 	localMoveVector[0] += input.analog[0];
 	localMoveVector[2] += input.analog[1];
 
+	// This artificial deadzone is to prevent the joystick from drifting away.
+	// Decent joysticks wouldn't need this, but mine is somewhat cheap and unreliable.
+	const double deadzone = 0.2;
+	if(deadzone < fabs(input.analog[2])){
+		double absmov = fabs(input.analog[2]) - deadzone;
+		EyeYaw -= (input.analog[2] < 0 ? -absmov : absmov) * 2e-2; // Head rotation
+	}
+
 	Vector3f    orientationVector = yawRotate.Transform(localMoveVector);
 
 	const float deltaTime = 1.0f/60.0f;
