@@ -12,6 +12,7 @@
       <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\motion.cpp" />
+    <ClCompile Include="..\..\..\Joystick.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Util">
@@ -32,6 +33,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\board.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Joystick.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

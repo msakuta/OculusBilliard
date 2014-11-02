@@ -23,6 +23,7 @@ limitations under the License.
 #include "OVR_CAPI.h"
 
 #include "board.h"
+#include "Joystick.h"
 
 // Win32 System Variables
 HWND                hWnd = NULL;
@@ -48,6 +49,8 @@ float               AdditionalYawFromMouse = 0;
 const float         MoveSpeed   = 3.0f;
 
 extern ovrHmd       HMD;
+
+Joystick joyStick(0);
 
 // Functions from Win32_OculusRoomTiny.cpp
 int     Init();
@@ -118,6 +121,16 @@ bool Util_RespondToControls(float & EyeYaw, Vector3f & EyePos, OVR::Quatf PoseOr
     if (MoveBack)    localMoveVector += Vector3f(0,0,+1); 
     if (MoveRight)   localMoveVector += Vector3f(1,0,0); 
     if (MoveLeft)    localMoveVector += Vector3f(-1,0,0);
+
+	static bool joyInit = false;
+	if(!joyInit){
+		joyStick.InitJoystick();
+		joyInit = true;
+	}
+	input_t input;
+	joyStick.CheckJoystick(input);
+	localMoveVector[0] += input.analog[0];
+	localMoveVector[2] += input.analog[1];
 
 	Vector3f    orientationVector = yawRotate.Transform(localMoveVector);
 
