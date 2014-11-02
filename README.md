@@ -46,11 +46,23 @@ while holding down the mouse button.
 
 ### OculusBilliard
 
-Not yet implemented
+#### Keyboard control
 
 * 'W', 'A', 'S' and 'D' - Walk to directions
 
+* 'G' - Shoot the cue ball
+
+* 'B' - Reset the game to initial state
+
 * ESC - End the game
+
+#### Gamepad with joysticks control
+
+* Joystick 1 - Walk to directions
+
+* Joystick 2 - Look around yaw
+
+* Button 1 - shoot the ball
 
 
 Build
