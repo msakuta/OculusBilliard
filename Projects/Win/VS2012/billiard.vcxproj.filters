@@ -41,9 +41,6 @@
     <ClInclude Include="..\..\..\viewer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\war.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\antiglut.h">
       <Filter>Header Files</Filter>
     </ClInclude>

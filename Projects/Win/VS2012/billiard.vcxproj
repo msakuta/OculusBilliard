@@ -193,7 +193,6 @@
     <ClInclude Include="..\..\..\graphic.h" />
     <ClInclude Include="..\..\..\player.h" />
     <ClInclude Include="..\..\..\viewer.h" />
-    <ClInclude Include="..\..\..\war.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

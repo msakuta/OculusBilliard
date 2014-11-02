@@ -3,7 +3,6 @@
 
 #include "viewer.h"
 #include "player.h"
-#include "war.h"
 #include "board.h"
 #include "graphic.h"
 //#include <unzip32.h>
