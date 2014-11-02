@@ -262,6 +262,10 @@ void Ball::anim(Board &b, double dt){
 				Vec3d potpos = Vec3d((board.x0 * (1 - ix) + board.x1 * (1 + ix)) / 2., 0, (board.y0 * (1 - iy) + board.y1 * (1 + iy)) / 2.);
 				if((pos - potpos).slen() < Board::holerad * Board::holerad){
 					pot = true;
+#ifdef OCULUSBILLIARD
+					if(model)
+						model->SetVisible(false);
+#endif
 					return;
 				}
 			}
@@ -289,6 +293,10 @@ void Ball::anim(Board &b, double dt){
 		model->SetPosition(f);
 		OVR::Quatf q(rot[0], rot[1], rot[2], rot[3]);
 		model->SetOrientation(q);
+		if(pot)
+			model->SetVisible(false);
+		else
+			model->SetVisible(true);
 	}
 #endif
 }
